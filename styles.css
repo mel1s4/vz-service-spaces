@@ -1,0 +1,46 @@
+
+#vz-service-spaces-footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 5;
+  border: 1px solid #333;
+  overflow: hidden;
+  border-bottom: 2px solid red;
+  display: flex;
+  font-size: 20px;
+  transform: translateX(-50%);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  border-top-left-radius: 0.5em;
+  border-top-right-radius: 0.5em;
+  background: white;
+  p, button {
+    margin: 0;
+    padding: 0.5em 1em;
+    font-size: inherit;
+    border: none;
+
+  }
+  p {
+    padding: 0.5em 2em;
+  }
+  button {
+    background-color: #eee;
+    font-weight: bold;
+    cursor: pointer;
+    &:hover {
+      background-color: #ccc;
+    }
+  }
+
+  &:after {
+    content: '';
+    position: fixed;
+    display: block;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 7px;
+    z-index: 6;
+  }
+}
