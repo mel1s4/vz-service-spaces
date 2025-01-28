@@ -12,7 +12,7 @@ if ($saved_space_uid) {
 $space_uid_readable = implode('-', str_split($space_uid, 4));
 $space_login_url = get_site_url() . '/?vz_space_uid=' . $space_uid;
 
-$qr_code_api = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=";
+$qr_code_api = "https://api.qrserver.com/v1/create-qr-code/";
 $args = array(
   'size' => '150x150',
   'data' => $space_login_url

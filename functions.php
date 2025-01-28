@@ -106,7 +106,9 @@ add_action('wp_enqueue_scripts', 'vz_service_spaces_styles');
 
 function vz_services_add_cookie() {
   if (is_admin()) return;
-  if (!isset($_GET['vz_space_uid'])) return;
+  if (!isset($_GET['vz_space_uid'])) {
+    return;
+  }
   $space_uid = $_GET['vz_space_uid'];
   $space = get_posts([
     'post_type' => 'vz-service-space',
@@ -125,7 +127,9 @@ function vz_services_add_cookie() {
     setcookie('vz_space_user_id', '', -1, '/');
     return;
   }
-  if (isset($_COOKIE['vz_space_uid'])) return;
+  if (isset($_COOKIE['vz_space_uid'])) {
+    return;
+  }
   $cookie_ttl = time() + 3600 * 6;
   setcookie('vz_space_uid', $space_uid, $cookie_ttl , '/');
   $user_id = get_current_user_id();
@@ -217,4 +221,86 @@ function vz_get_orders_from_uid($space_uid) {
   ", $space_uid));
 
   return $order_ids;
+}
+
+add_filter('template_include', 'vz_service_space_template_override');
+function vz_service_space_template_override($template) {
+  if (is_singular('vz-service-space')) {
+    return plugin_dir_path(__FILE__) . 'single-vz-service-space.php';
+  }
+  return $template;
+}
+
+function vz_service_space_details($space_uid) {
+  $space_id = vz_get_space_by_uid($space_uid);
+  if (!$space_id) {
+    return new WP_Error('no_space', 'No space found with that UID', ['status' => 404]);
+  }
+  $visits = vz_ss_get_unique_visits($space_id);
+  $orders = vz_get_orders_from_uid($space_uid);
+  $nVisits = [];
+  foreach ($visits as $visit) {
+    $nVisits[] = [
+      'visitor' => vz_get_visitor_from_uuid($visit['visitor']),
+      'time' => intval($visit['time']),
+    ];
+  }
+  $nOrders = [];
+  $pending_payment = 0;
+  foreach ($orders as $order_id) {
+    $order = wc_get_order($order_id);
+    $user_id = $order->get_user_id();
+    $user_login = get_userdata($user_id)->user_login;
+    $items = [];
+    foreach ($order->get_items() as $item) {
+      $items[] = [
+        'quantity' => $item->get_quantity(),
+        'product_permalink' => get_permalink($item->get_product_id()),
+        'product_name' => $item->get_name(),
+        'product_price' => $item->get_total(),
+        'quantity' => $item->get_quantity()
+      ];
+    }
+    $nOrders[] = [
+      'order_id' => $order_id,
+      'user_id' => $user_id,
+      'user_login' => $user_login,
+      'order_total' => $order->get_total(),
+      'order_status' => $order->get_status(),
+      'order_date' => $order->get_date_created()->date('Y-m-d H:i:s'),
+      'billing_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+      'items' => $items
+    ];
+    if ($order->get_status() !== 'completed') {
+      $pending_payment += intval($order->get_total());
+    }
+  }
+  return [
+    'space_title' => get_the_title($space_id),
+    'visits' => $nVisits,
+    'orders' => $nOrders,
+    'pending_payment' => $pending_payment,
+  ];
+}
+
+function vz_get_visitor_from_uuid($uuid) {
+  if (strpos($uuid, 'anon_') !== false) {
+    return $uuid;
+  }
+  return get_userdata(intval($uuid))->user_login;
+}
+
+add_action('rest_api_init', function () {
+  register_rest_route('vz-ss/v1', '/mark-delivered/(?P<space_uid>\d+)', [
+    'methods' => 'POST',
+    'callback' => 'vz_mark_product_as_delivered',
+    'permission_callback' => function () {
+      return current_user_can('edit_posts');
+    },
+  ]);
+});
+
+function vz_mark_product_as_delivered($data) {
+  $space_uid = $data['space_uid'];
+  return $space_uid;
 }
