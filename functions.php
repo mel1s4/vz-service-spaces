@@ -306,6 +306,14 @@ function vz_ss_register_rest_routes() {
       return current_user_can('edit_posts');
     },
   ]);
+
+  register_rest_route('vz-ss/v1', '/reset_space/', [
+    'methods' => 'POST',
+    'callback' => 'vz_ss_reset_space',
+    'permission_callback' => function () {
+      return current_user_can('edit_posts');
+    },
+  ]);
 }
 
 function vz_mark_product_as_delivered($request) {
@@ -328,5 +336,20 @@ function vz_mark_product_as_delivered($request) {
   return [
     'status' => 'success',
     'delivered_products' => $space_delivered_products
+  ];
+}
+
+function vz_ss_reset_space($request) {
+  
+  $args = $request->get_params();
+  $space_uid = $args['space_uid'];
+  $space_id = vz_get_space_by_uid($space_uid);
+  delete_post_meta($space_id, 'vz_space_visits');
+  delete_post_meta($space_id, 'vz_space_delivered_products');
+  $new_uid = strtoupper(wp_generate_password(12, false));
+  update_post_meta($space_id, 'vz_service_space_uid', $new_uid);
+
+  return [
+    'status' => 'success',
   ];
 }

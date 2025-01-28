@@ -105,6 +105,26 @@ function App() {
     }
   }
 
+  async function resetServiceSpace() {
+    const params = {
+      space_uid: spaceUid,
+    };
+    try {
+      const result = await axios.post(`${blogUrl}wp-json/vz-ss/v1/reset_space/`, params, {
+        headers: {
+          'X-WP-Nonce': nonce,
+        },
+      });
+      if(result.data.status == 'success') {
+        window.location.reload();
+      } else {
+        console.error(result);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   function goBack() {
     window.location.href = blogUrl;
   }
@@ -147,10 +167,6 @@ function App() {
     e.target.classList.toggle('--active');
   }
 
-  function resetServiceSpace() {
-
-  }
-
   function productIsDelivered(order, index) {
     if (deliveredProducts[order.order_id]) {
       return deliveredProducts[order.order_id][index];
@@ -176,6 +192,13 @@ function App() {
       <section className='vz-ss__visitors'>
         <h2>Visits</h2>
         <ul>
+          {visitors.length === 0 && (
+            <li>
+              <article className="vz-ss__no-results">
+                <p className="no-results">No Visitors. Share the code or link to leg them in.</p>
+              </article>
+            </li>
+          )}
           {visitors.map((visitor, index) => (
             <li key={index}>
               <article className="vz-ss__visit">
@@ -189,6 +212,13 @@ function App() {
       <section className='vz-ss__orders'>
         <h2>Orders</h2>
         <ul className="vz-ss__order-list">
+          {orders.length === 0 && (
+            <li>
+              <article className="vz-ss__no-results">
+                <p className="no-results">No Orders Yet</p>
+              </article>
+            </li>
+          )}
           {orders.map((order, index) => (
             <li key={index}>
               <aricle className="vz-ss__order">
@@ -228,12 +258,14 @@ function App() {
       </section>
       <section className="vz-ss__footer">
         <p className="vz-ss__pending-payment">
-          Pending Payment: <b>${pendingPayment}</b>
+          Total Due: <b>${pendingPayment}</b>
         </p>
-        <button className="vz-ss__reset-space" 
-                onClick={() => resetServiceSpace()}>
-          Reset Service Space
-        </button>
+        {userIsAdmin && (
+          <button className="vz-ss__reset-space" 
+                  onClick={() => resetServiceSpace()}>
+            Reset Service Space
+          </button>
+        )}
       </section>
     </div>
   );
