@@ -1,11 +1,14 @@
 import {useState, useEffect} from 'react';
 import './App.scss';
+import axios from 'axios';
 
 function App() {
   const [userIsAdmin, setUserIsAdmin] = useState(true);
   const [spaceUid, setSpaceUid] = useState('initial');
   const [spaceTitle, setSpaceTitle] = useState('initial');
   const [spaceId, setSpaceId] = useState('initial');
+  const [nonce, setNonce] = useState('initial');
+  const [deliveredProducts, setDeliveredProducts] = useState([]);
   const [pendingPayment, setPendingPayment] = useState('initial');
   const [visitors, setVisitors] = useState([
     {
@@ -59,6 +62,7 @@ function App() {
       if (window.vz_service_space_values) {
         setOrders(window.vz_service_space_values.orders);
         setVisitors(window.vz_service_space_values.visits);
+        setDeliveredProducts(window.vz_service_space_values.delivered_products);
         setSpaceTitle(window.vz_service_space_values.space_title);
         setPendingPayment(window.vz_service_space_values.pending_payment);
       }
@@ -68,19 +72,41 @@ function App() {
       if (window.vz_service_space_is_admin) {
         setUserIsAdmin(window.vz_service_space_is_admin);
       }
+      if (window.vz_service_space_nonce) {
+        setNonce(window.vz_service_space_nonce);
+      }
     }
   }, [window]);
 
-  async function toggleDeliveryState(e) {
-    const result = await fetch(`${blogUrl}wp-json/vz-ss/v1/service_space/${spaceUid}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    const spaceInfoJson = await spaceInfo.json();
-    console.log(spaceInfoJson);
-    e.target.classList.add('--delivered');
+  async function toggleDeliveryState(e, order, index) {
+    const params = {
+      space_uid: spaceUid,
+      order_id: order.order_id,
+      item_index: index,
+      nonce: nonce,
+    };
+    try {
+      const result = await axios.post(`${blogUrl}wp-json/vz-ss/v1/delivered/`, params, {
+        headers: {
+          'X-WP-Nonce': nonce,
+        },
+      });
+      const nDeliveredProducts = {...deliveredProducts};
+      if (!nDeliveredProducts[`${order.order_id}`]) {
+        nDeliveredProducts[`${order.order_id}`] = [];
+      }
+      if(result.data.status == 'success') {
+        setDeliveredProducts(result.data.delivered_products);
+      } else {
+        console.error(result);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function goBack() {
+    window.location.href = blogUrl;
   }
 
   function formatTime(time) {
@@ -125,9 +151,19 @@ function App() {
 
   }
 
+  function productIsDelivered(order, index) {
+    if (deliveredProducts[order.order_id]) {
+      return deliveredProducts[order.order_id][index];
+    }
+    return false;
+  }
+
   return (
     <div className="App">
       <header className="vz-ss__login">
+        <button className="vz-ss__go-back" onClick={() => goBack()}>
+          Go Back
+        </button>
         <h1>{spaceTitle}</h1>
         <div className="img">
           <img src={qrCode()} alt="QR Code" />
@@ -175,9 +211,10 @@ function App() {
                         <p className="quantity">{item.quantity} x</p>
                         <p className="product_price">${item.product_price}</p>
                         {userIsAdmin && ( 
-                          <button className="delivered-button" onClick={toggleDeliveryState}> Delivered </button>
+                          <button className={ productIsDelivered(order, index) ? 'delivered-button --delivered' : 'delivered-button' } 
+                                  onClick={(e) => toggleDeliveryState(e, order, index)}> Delivered </button>
                         )}
-                        {!userIsAdmin && ( 
+                        {(!userIsAdmin && productIsDelivered(order, index)) && (
                           <p className="delivered-mark"> Delivered </p>
                         )}
                       </article>
@@ -189,11 +226,12 @@ function App() {
           ))}
         </ul>
       </section>
-      <section>
+      <section className="vz-ss__footer">
         <p className="vz-ss__pending-payment">
-          Pending Payment: ${pendingPayment}
+          Pending Payment: <b>${pendingPayment}</b>
         </p>
-        <button className="vz-ss__reset-space" onClick={() => resetServiceSpace()}>
+        <button className="vz-ss__reset-space" 
+                onClick={() => resetServiceSpace()}>
           Reset Service Space
         </button>
       </section>

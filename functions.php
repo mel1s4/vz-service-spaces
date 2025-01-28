@@ -250,7 +250,12 @@ function vz_service_space_details($space_uid) {
   foreach ($orders as $order_id) {
     $order = wc_get_order($order_id);
     $user_id = $order->get_user_id();
-    $user_login = get_userdata($user_id)->user_login;
+    $user_data = get_userdata($user_id);
+    if ($user_data) {
+      $user_login = $user_data->user_login;
+    } else {
+      $user_login = 'anon_' . $user_id;
+    }
     $items = [];
     foreach ($order->get_items() as $item) {
       $items[] = [
@@ -279,6 +284,7 @@ function vz_service_space_details($space_uid) {
     'space_title' => get_the_title($space_id),
     'visits' => $nVisits,
     'orders' => $nOrders,
+    'delivered_products' => get_post_meta($space_id, 'vz_space_delivered_products', true),
     'pending_payment' => $pending_payment,
   ];
 }
@@ -290,17 +296,37 @@ function vz_get_visitor_from_uuid($uuid) {
   return get_userdata(intval($uuid))->user_login;
 }
 
-add_action('rest_api_init', function () {
-  register_rest_route('vz-ss/v1', '/mark-delivered/(?P<space_uid>\d+)', [
+add_action('rest_api_init', 'vz_ss_register_rest_routes');
+
+function vz_ss_register_rest_routes() {
+  register_rest_route('vz-ss/v1', '/delivered/', [
     'methods' => 'POST',
     'callback' => 'vz_mark_product_as_delivered',
     'permission_callback' => function () {
       return current_user_can('edit_posts');
     },
   ]);
-});
+}
 
-function vz_mark_product_as_delivered($data) {
-  $space_uid = $data['space_uid'];
-  return $space_uid;
+function vz_mark_product_as_delivered($request) {
+  $args = $request->get_params();
+  $order_id = $args['order_id'];
+  $item_index = $args['item_index'];
+  $space_uid = $args['space_uid'];
+  $space_id = vz_get_space_by_uid($space_uid);
+
+  $space_delivered_products = get_post_meta($space_id, 'vz_space_delivered_products', true);
+  if (!$space_delivered_products) {
+    $space_delivered_products = [];
+  }
+  if ($space_delivered_products[$order_id][$item_index]) {
+    unset($space_delivered_products[$order_id][$item_index]);
+  } else {
+    $space_delivered_products[$order_id][$item_index] = time();
+  }
+  update_post_meta($space_id, 'vz_space_delivered_products', $space_delivered_products);
+  return [
+    'status' => 'success',
+    'delivered_products' => $space_delivered_products
+  ];
 }

@@ -1,6 +1,4 @@
 <?php 
-
-
 $labels = array(
   'name'               => _x('Service Spaces', 'post type general name', 'vz-service-spaces'),
   'singular_name'      => _x('Service Space', 'post type singular name', 'vz-service-spaces'),
