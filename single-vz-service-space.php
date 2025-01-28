@@ -25,6 +25,7 @@
     window.vz_service_space_values = JSON.parse(`<?php echo JSON_ENCODE(vz_service_space_details($uid)) ?>`);
     window.vz_service_space_is_admin = `<?php echo $is_admin ?>`;
     window.vz_service_space_nonce = `<?php echo wp_create_nonce('wp_rest') ?>`;
+    window.vz_ss_blog_url = `<?php echo get_bloginfo('url') ?>`;
   </script>
 </head>
 <body id="root">

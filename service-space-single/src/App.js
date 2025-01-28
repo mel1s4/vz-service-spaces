@@ -75,6 +75,9 @@ function App() {
       if (window.vz_service_space_nonce) {
         setNonce(window.vz_service_space_nonce);
       }
+      if (window.vz_ss_blog_url) {
+        setBlogUrl(window.vz_ss_blog_url);
+      }
     }
   }, [window]);
 

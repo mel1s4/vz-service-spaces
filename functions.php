@@ -11,6 +11,17 @@ Author URI: http://melisaviroz.com
 License: GPL2
 */
 
+// requires woocommerce, send an alert if it's not installed
+if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+  add_action('admin_notices', 'vz_service_spaces_alert');
+  function vz_service_spaces_alert() {
+    echo '<div class="notice notice-error is-dismissible">
+      <p>WooCommerce is required for the Viroz Service Spaces plugin to work. Please install and activate WooCommerce.</p>
+    </div>';
+  }
+  return;
+}
+
 if (!defined('ABSPATH')) {
   exit;
 }
@@ -340,7 +351,7 @@ function vz_mark_product_as_delivered($request) {
 }
 
 function vz_ss_reset_space($request) {
-  
+
   $args = $request->get_params();
   $space_uid = $args['space_uid'];
   $space_id = vz_get_space_by_uid($space_uid);
