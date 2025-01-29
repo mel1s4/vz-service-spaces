@@ -31,7 +31,7 @@ function App() {
       ],
     }
   ]);
-  const [blogUrl, setBlogUrl] = useState('http://localhost/');
+  const [blogUrl, setBlogUrl] = useState('http://localhost');
 
   function qrCode() {
       const spaceLoginUrl = `${blogUrl}?vz_space_uid=${spaceUid}`;
@@ -89,7 +89,7 @@ function App() {
       nonce: nonce,
     };
     try {
-      const result = await axios.post(`${blogUrl}wp-json/vz-ss/v1/delivered/`, params, {
+      const result = await axios.post(`${blogUrl}/wp-json/vz-ss/v1/delivered/`, params, {
         headers: {
           'X-WP-Nonce': nonce,
         },
@@ -113,7 +113,7 @@ function App() {
       space_uid: spaceUid,
     };
     try {
-      const result = await axios.post(`${blogUrl}wp-json/vz-ss/v1/reset_space/`, params, {
+      const result = await axios.post(`${blogUrl}/wp-json/vz-ss/v1/reset_space/`, params, {
         headers: {
           'X-WP-Nonce': nonce,
         },
