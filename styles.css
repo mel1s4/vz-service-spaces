@@ -14,14 +14,16 @@
   border-top-left-radius: 0.5em;
   border-top-right-radius: 0.5em;
   background: white;
-  p, button {
+  .vz-ss-link, button {
     margin: 0;
     padding: 0.5em 1em;
     font-size: inherit;
     border: none;
 
   }
-  p {
+ 
+  .vz-ss-link {
+    text-decoration: none;
     padding: 0.5em 2em;
   }
   button {

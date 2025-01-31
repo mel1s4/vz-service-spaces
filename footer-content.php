@@ -4,12 +4,12 @@ if (!isset($_COOKIE['vz_space_uid'])) return;
 
 $space_uid = $_COOKIE['vz_space_uid'];
 $space_id = vz_get_space_by_uid($space_uid);
-$user_id = isset($_COOKIE['vz_space_user_id']) ? $_COOKIE['vz_space_user_id'] : 'Guest';
+// $user_id = isset($_COOKIE['vz_space_user_id']) ? $_COOKIE['vz_space_user_id'] : 'Guest';
 
 ?>
 
 <div id='vz-service-spaces-footer'>
-  <p> <?php echo get_the_title($space_id) ?> </p>
+  <a class="vz-ss-link" href="<?php echo get_the_permalink($space_id) ?>"> <?php echo get_the_title($space_id) ?> </a>
   <button id='vz-service-spaces-logout'> Salir </button>
 </div>
 
