@@ -17,7 +17,7 @@ function vz_ss_register_rest_routes() {
   ]);
   register_rest_route('vz-ss/v1', '/service_spaces/', [
     'methods' => 'POST',
-    'callback' => 'vz_ss_get_service_spaces',
+    'callback' => 'vz_ss_get_service_spaces_endpoint',
     'permission_callback' => function () {
       return true;
       return current_user_can('edit_posts');
@@ -70,9 +70,14 @@ function vz_ss_reset_space($request) {
   ];
 }
 
-function vz_ss_get_service_spaces($request) {
-  $args = $request->get_params();
+function vz_ss_get_service_spaces_endpoint($request) {
+  return [
+    'status' => 'success',
+    'service_spaces' => vz_ss_get_service_spaces(),
+  ];
+}
 
+function vz_ss_get_service_spaces() {
   $service_spaces = get_posts([
     'post_type' => 'vz-service-space',
     'posts_per_page' => -1,
@@ -88,10 +93,6 @@ function vz_ss_get_service_spaces($request) {
     $nss[$key]['uid'] = $uid;
     $nss[$key]['url'] = get_the_permalink($space);
   }
-
-  return [
-    'status' => 'success',
-    'service_spaces' => $nss
-  ];
+  return $nss;
 }
  

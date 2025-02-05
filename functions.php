@@ -10,6 +10,11 @@ License: GPL2
 */
 use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
 
+// allow cross origin
+add_action('init', 'vz_service_spaces_allow_cors');
+function vz_service_spaces_allow_cors() {
+  header("Access-Control-Allow-Origin: *");
+}
 
 // requires woocommerce, send an alert if it's not installed
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
@@ -241,6 +246,14 @@ function vz_service_space_template_override($template) {
   if (is_singular('vz-service-space')) {
     return plugin_dir_path(__FILE__) . 'single-vz-service-space.php';
   }
+  if (is_post_type_archive('vz-service-space')) {
+    // if user is admin
+    if (current_user_can('edit_posts')) {
+      return plugin_dir_path(__FILE__) . 'archive-vz-service-space.php';
+    } else {
+      wp_redirect(home_url());
+    }
+  }
   return $template;
 }
 
@@ -309,4 +322,18 @@ function vz_get_visitor_from_uuid($uuid) {
     return $uuid;
   }
   return get_userdata(intval($uuid))->user_login;
+}
+
+
+// add menu option to the post type vz-service-spaces that takes the admin directly to the archive page
+add_action('admin_menu', 'vz_service_spaces_admin_menu');
+function vz_service_spaces_admin_menu() {
+  $url = get_bloginfo('url') . '/service-space/';
+  add_submenu_page(
+    'edit.php?post_type=vz-service-space',
+    'Service Spaces',
+    'Service Spaces',
+    'edit_posts',
+    $url,
+  );
 }

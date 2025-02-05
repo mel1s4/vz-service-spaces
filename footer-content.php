@@ -1,8 +1,13 @@
 <?php 
 if (is_admin()) return;
-if (!isset($_COOKIE['vz_space_uid'])) return;
+if (isset($_COOKIE['vz_space_uid'])) {
+  $space_uid = $_COOKIE['vz_space_uid'];
+} else if (isset($_GET['vz_space_uid'])) {
+  $space_uid = $_GET['vz_space_uid'];
+} else {
+  return;
+}
 
-$space_uid = $_COOKIE['vz_space_uid'];
 $space_id = vz_get_space_by_uid($space_uid);
 // $user_id = isset($_COOKIE['vz_space_user_id']) ? $_COOKIE['vz_space_user_id'] : 'Guest';
 
