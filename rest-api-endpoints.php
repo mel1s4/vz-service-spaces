@@ -23,6 +23,14 @@ function vz_ss_register_rest_routes() {
       return current_user_can('edit_posts');
     },
   ]);
+  register_rest_route('vz-ss/v1', '/orders/', [
+    'methods' => 'POST',
+    'callback' => 'vz_ss_get_orders_endpoint',
+    'permission_callback' => function () {
+      return true;
+      return current_user_can('edit_posts');
+    },
+  ]);
 }
 
 function vz_ss_test($request) {
@@ -96,3 +104,121 @@ function vz_ss_get_service_spaces() {
   return $nss;
 }
  
+function vz_ss_get_orders_endpoint($request) {
+  $args = $request->get_params();
+  $categories = $args['categories'];
+  $tags = $args['tags'];
+  $orders_per_page = $args['ordersPerPage'];
+  $page = $args['currentPage'];
+  $query = new WC_Order_Query( array(
+    'limit' => $orders_per_page,
+    'page' => $page,
+    'orderby' => 'date',
+    'order' => 'DESC',
+    'return' => 'ids',
+  ) );
+  $orders = $query->get_orders();
+  
+  $formatted_orders = [];
+  foreach ($orders as $key => $order_id) {
+    $order = wc_get_order($order_id);
+    $formatted_orders[$key] = [
+      'id' => $order_id,
+      'number' => $order->get_order_number(),
+      'customer' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+      'date' => $order->get_date_created()->date('Y-m-d H:i:s'),
+      'total' => $order->get_total(),
+      'status' => $order->get_status(),
+      'items' => [],
+      'location' => vz_ss_order_location($order_id),
+    ];
+    $items = $order->get_items();
+    foreach ($items as $item_id => $item) {
+      $product = $item->get_product();
+      $product_categories = $product->get_category_ids();
+      $product_tags = $product->get_tag_ids();
+      if (
+        ($categories && !array_intersect($categories, $product_categories))
+        ||
+        ($tags && !array_intersect($tags, $product_tags))
+      ) {
+        continue;
+      }
+      $formatted_orders[$key]['items'][] = [
+        'id' => $product->get_id(),
+        'name' => $product->get_name(),
+        'sku' => $product->get_sku(),
+        'price' => $product->get_price(),
+        'categories' => $product_categories,
+        'tags' => $product_tags,
+        'quantity' => $item->get_quantity(),
+        'total' => $item->get_total(),
+      ];
+    }
+  }
+
+  return [
+    'status' => 'success',
+    'orders' => $formatted_orders,
+    'categories' => vz_ss_get_all_product_categories(),
+    'tags' => vz_ss_get_all_product_tags(),
+  ];
+}
+
+function vz_ss_get_all_product_categories() {
+  $args = array(
+    'taxonomy' => 'product_cat',
+    'orderby' => 'name',
+    'order' => 'ASC',
+    'hide_empty' => true,
+  );
+  $product_categories = get_terms($args);
+  $categories = [];
+  foreach ($product_categories as $key => $category) {
+    $categories[$key] = [
+      'value' => $category->term_id,
+      'label' => $category->name,
+    ];
+  }
+  return $categories;
+}
+
+function vz_ss_get_all_product_tags() {
+  $args = array(
+    'taxonomy' => 'product_tag',
+    'orderby' => 'name',
+    'order' => 'ASC',
+    'hide_empty' => true,
+  );
+  $product_tags = get_terms($args);
+  $tags = [];
+  foreach ($product_tags as $key => $tag) {
+    $tags[$key] = [
+      'value' => $tag->term_id,
+      'label' => $tag->name,
+    ];
+  }
+  return $tags;
+}
+
+function vz_ss_order_location($order_id) {
+  $order_meta = get_post_meta($order_id, 'vz_space_id', true);
+  $delivery = false;
+  if ($order_meta) {
+    $location = get_the_title($order_meta);
+  } else {
+    // delivery address
+    $shipping = $order->get_shipping_address_1();
+    $shipping .= $order->get_shipping_address_2() ? ', ' . $order->get_shipping_address_2() : '';
+    $shipping .= $order->get_shipping_city() ? ', ' . $order->get_shipping_city() : '';
+    $shipping .= $order->get_shipping_state() ? ', ' . $order->get_shipping_state() : '';
+    $shipping .= $order->get_shipping_postcode() ? ', ' . $order->get_shipping_postcode() : '';
+    $location = $shipping;
+    $delivery = true;
+  }
+
+  return [
+    'delivery' => $delivery,
+    'location' => $location,
+  ];
+}

@@ -124,7 +124,9 @@ function App() {
       return '';
     }
     visits.sort((a, b) => b.time - a.time);
-    return visits[0].time;
+    const time = visits[0].time;
+    const date = new Date(time * 1000);
+    return date.toLocaleString();
   }
 
   function toggleUpdate() {
@@ -134,9 +136,9 @@ function App() {
   return (
     <div className="App">
       <header className="vz-ss__header">
-       <h1> Service Spaces </h1>
+       <h1> Mesas </h1>
        <button onClick={() => toggleUpdate()} className={keepUpdating ? '--active' : ''}>
-        {keepUpdating ? 'Stop Updating' : 'Start Updating'}
+        {keepUpdating ? 'Parar actualizacion' : 'Actualizacion automatica'}
        </button>
       </header>
       <main className="vz-service-spaces__archive">
@@ -144,21 +146,19 @@ function App() {
           {serviceSpaces.map((serviceSpace, index) => (
             <li key={index} className="vz-ss__item">
               <div className="vz-ss__card">
-                <h2>{serviceSpace.space_title}</h2>
+                <h2 className="vz-ss__card-title">{serviceSpace.space_title}</h2>
                 <p className="visits">
                   <strong>Visits:</strong> {serviceSpace.visits.length}
                 </p>
-                {serviceSpace.visits.length > 0 && (
-                  <p> Logged at: { vzGetFirstLogIn(serviceSpace.visits)}</p>
-                )}
                 <p className="orders">
                   <strong>Orders:</strong> {serviceSpace.orders.length}
                 </p>
                 <p className="items">
                   <strong>Items:</strong> {vzDeliveredItems(serviceSpace.delivered_products)} / {vzTotalItems(serviceSpace.orders)}
                 </p>
-                <a href={serviceSpace.url} target="_blank" rel="noopener noreferrer">
-                  View Space
+                  <p className="login"> Iniciaron: { vzGetFirstLogIn(serviceSpace.visits)}</p>                
+                <a className="vz-ss__view-space" href={serviceSpace.url} target="_blank" rel="noopener noreferrer">
+                  Ver Mesa
                 </a>
               </div>
             </li>
