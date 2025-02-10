@@ -47,19 +47,18 @@ function vz_mark_product_as_delivered($request) {
   $space_uid = $args['space_uid'];
   $space_id = vz_get_space_by_uid($space_uid);
 
-  $space_delivered_products = get_post_meta($space_id, 'vz_space_delivered_products', true);
-  if (!$space_delivered_products) {
-    $space_delivered_products = [];
+  $order_delivered_products = get_post_meta($order_id, 'vz_order_delivered_products', true);
+  if (!$order_delivered_products) {
+    $order_delivered_products = [];
   }
-  if ($space_delivered_products[$order_id][$item_index]) {
-    unset($space_delivered_products[$order_id][$item_index]);
+  if ($order_delivered_products[$order_id][$item_index]) {
+    unset($order_delivered_products[$order_id][$item_index]);
   } else {
-    $space_delivered_products[$order_id][$item_index] = time();
+    $order_delivered_products[$order_id][$item_index] = time();
   }
-  update_post_meta($space_id, 'vz_space_delivered_products', $space_delivered_products);
+  update_post_meta($order_id, 'vz_order_delivered_products', $order_delivered_products);
   return [
     'status' => 'success',
-    'delivered_products' => $space_delivered_products
   ];
 }
 
@@ -69,7 +68,6 @@ function vz_ss_reset_space($request) {
   $space_uid = $args['space_uid'];
   $space_id = vz_get_space_by_uid($space_uid);
   delete_post_meta($space_id, 'vz_space_visits');
-  delete_post_meta($space_id, 'vz_space_delivered_products');
   $new_uid = strtoupper(wp_generate_password(12, false));
   update_post_meta($space_id, 'vz_service_space_uid', $new_uid);
 
@@ -108,14 +106,17 @@ function vz_ss_get_orders_endpoint($request) {
   $args = $request->get_params();
   $categories = $args['categories'];
   $tags = $args['tags'];
+  $hide_empty = $args['hideEmpty'];
   $orders_per_page = $args['ordersPerPage'];
   $page = $args['currentPage'];
+  $status = $args['status'];
   $query = new WC_Order_Query( array(
     'limit' => $orders_per_page,
     'page' => $page,
     'orderby' => 'date',
-    'order' => 'DESC',
+    'order' => 'ASC',
     'return' => 'ids',
+    'status' => $status,
   ) );
   $orders = $query->get_orders();
   
@@ -130,6 +131,7 @@ function vz_ss_get_orders_endpoint($request) {
       'total' => $order->get_total(),
       'status' => $order->get_status(),
       'items' => [],
+      'notes' => $order->get_customer_note(),
       'location' => vz_ss_order_location($order_id),
     ];
     $items = $order->get_items();
@@ -157,11 +159,27 @@ function vz_ss_get_orders_endpoint($request) {
     }
   }
 
+  $status = [];
+  $statuses = wc_get_order_statuses();
+  foreach ($statuses as $key => $value) {
+    $status[] = [
+      'value' => $key,
+      'label' => $value,
+    ];
+  }
+
+  // if ($hide_empty) {
+  //   $formatted_orders = array_filter($formatted_orders, function($order) {
+  //     return count($order['items']) > 0;
+  //   });
+  // }
+
   return [
     'status' => 'success',
     'orders' => $formatted_orders,
     'categories' => vz_ss_get_all_product_categories(),
     'tags' => vz_ss_get_all_product_tags(),
+    'woo_status' => $status,
   ];
 }
 
@@ -205,9 +223,11 @@ function vz_ss_order_location($order_id) {
   $order_meta = get_post_meta($order_id, 'vz_space_id', true);
   $delivery = false;
   if ($order_meta) {
+    // service space
     $location = get_the_title($order_meta);
   } else {
     // delivery address
+    $order = wc_get_order($order_id);
     $shipping = $order->get_shipping_address_1();
     $shipping .= $order->get_shipping_address_2() ? ', ' . $order->get_shipping_address_2() : '';
     $shipping .= $order->get_shipping_city() ? ', ' . $order->get_shipping_city() : '';

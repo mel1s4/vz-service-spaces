@@ -6,18 +6,22 @@ import './App.scss';
 function App() {
   const [blogUrl, setBlogUrl] = useState('http://localhost');
   const [nonce, setNonce] = useState('');
+  const [hideEmpty, setHideEmpty] = useState(false);
   const [orders, setOrders] = useState([]);
   const [ordersPerPage, setOrdersPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [keepUpdating, setKeepUpdating] = useState(false);
   const [updateInterval, setUpdateInterval] = useState(null);
   const [previousOrders, setPreviousOrders] = useState([]);
-
+  const [woo_status, setWooStatus] = useState([
+    { value: 'processing', label: 'Procesando' },
+    { value: 'completed', label: 'Completada' },
+    { value: 'on-hold', label: 'En espera' },
+  ]);
   const [productCategories, setProductCategories] = useState([
     { value: '1', label: 'Categoria 1' },
     { value: '2', label: 'Categoria 2' },
     { value: '3', label: 'Categoria 3' },
-    
   ]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
@@ -27,7 +31,7 @@ function App() {
     { value: '3', label: 'Etiqueta 3' },
   ]);
   const [selectedTags, setSelectedTags] = useState([]);
-
+  const [selectedStatus, setSelectedStatus] = useState([]);
   async function api(method, endpoint, data = {}) {
     console.log(blogUrl);
     try {
@@ -45,17 +49,28 @@ function App() {
     }
   }
 
+
+  // Listen to filters and pause the interval
+  useEffect(() => {
+    setKeepUpdating(false);
+    clearInterval(updateInterval);
+  }, 
+  [selectedCategories, selectedTags, selectedStatus, ordersPerPage, currentPage, hideEmpty]);
+
   async function fetchOrders() {
     const response = await api('POST', 'orders', {
       categories: selectedCategories.map((cat) => cat.value),
       tags: selectedTags.map((tag) => tag.value),
       ordersPerPage,
       currentPage,
+      hideEmpty,
+      status: selectedStatus.map((status) => status.value),
     });
     if (response.status === 'success') {
       setOrders(response.orders);
       setProductCategories(response.categories);
       setProductTags(response.tags);
+      setWooStatus(response.woo_status);
     } else {
       console.error('Error fetching service spaces');
     }
@@ -67,6 +82,8 @@ function App() {
       const filters = JSON.parse(window.localStorage.getItem('vz-ss-filters'));
       setSelectedCategories(filters.categories);
       setSelectedTags(filters.tags);
+      setSelectedStatus(filters.status);
+      console.log(filters, 'filters');
     }
     if (window.vz_service_spaces) {
       setOrders(window.vz_service_spaces);
@@ -76,6 +93,9 @@ function App() {
     }
     if (window.vz_blog_url) {
       setBlogUrl(window.vz_blog_url);
+    }
+    if (window.woo_status) {
+      setWooStatus(window.woo_status);
     }
   }, []);
 
@@ -92,7 +112,7 @@ function App() {
   }
 
   function newOrdersDetected(nOrders, old) {
-    if (!nOrders.length || !old.length) {
+    if (!nOrders || !old || !nOrders.length || !old.length) {
       return false;
     }
     for (let i = 0; i < nOrders.length; i++) {
@@ -136,7 +156,9 @@ function App() {
     window.localStorage.setItem('vz-ss-filters', JSON.stringify({
       categories: selectedCategories,
       tags: selectedTags,
+      status: selectedStatus,
     }));
+    console.log('saved!');
   }
 
   return (
@@ -153,6 +175,15 @@ function App() {
        </div>
       </header>
       <section className="vz-ss__order-filters">
+        <div className="vz-ss__filter">
+          <label> Estado de la Orden </label>
+          <Select
+            options={woo_status}
+            isMulti
+            value={selectedStatus}
+            onChange={setSelectedStatus}
+          />
+        </div>
         <div className="vz-ss__filter">
           <label> Categorias de Producto </label>
           <Select
@@ -171,25 +202,19 @@ function App() {
             onChange={setSelectedTags}
           />
         </div>
-        <div className="vz-ss__filter">
+        <div className="vz-ss__filter --results">
           <label>
-            Ordenes Por Pagina
+            Resultados
           </label>
           <input
             type="number"
             value={ordersPerPage}
             onChange={(e) => setOrdersPerPage(e.target.value)}
           />
-        </div>
-        <div className="vz-ss__filter">
           <label>
-            Pagina Actual
+            <input type="checkbox" checked={hideEmpty} onChange={() => setHideEmpty(!hideEmpty)} />
+            Esconder Ordenes sin Productos
           </label>
-          <input
-            type="number"
-            value={currentPage}
-            onChange={(e) => setCurrentPage(e.target.value)}
-          />
         </div>
       </section>
       <main className="vz-service-spaces__orders">
@@ -203,7 +228,7 @@ function App() {
                 <p className="customer">
                   <strong>Cliente:</strong> {order.customer}
                 </p>
-                <p className="order-status">
+                <p className={`order-status --${order.status}`}>
                   <strong>Estado:</strong> {order.status}
                 </p>
                 <p className="order-date">
@@ -212,16 +237,39 @@ function App() {
                 <p className="order-total">
                   <strong>Total:</strong> {order.total}
                 </p>
-                <p className="order-items">
+                <p className="vz-ss-order-items">
                   <strong>Articulos:</strong>
                   <ul>
                     {order.items.map((item) => (
                       <li key={item.id}>
-                        {item.name} - {item.quantity} * ${item.price} = ${item.total}
+                        <article className="vz-ss__order-item__card">
+                          <p className="title">
+                            {item.name}
+                          </p>
+                          <p className="quantity">
+                            x{item.quantity}
+                          </p>
+                          <p className="price">
+                            ${item.price}/u
+                          </p>
+                          <p className="total">
+                            ${item.total}
+                          </p>
+                        </article>
                       </li>
                     ))}
+                    {order.items.length === 0 && (
+                      <li>
+                        <p className="no-items">No hay articulos en esta orden</p>
+                      </li>
+                    )}
                   </ul>
                 </p>
+                {order.notes && (
+                  <p className="order-notes">
+                    <strong>Notas:</strong> {order.notes}
+                  </p>
+                )}
               </article>
             </li>
           ))}
