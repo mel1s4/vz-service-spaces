@@ -58,6 +58,7 @@ function App() {
   [selectedCategories, selectedTags, selectedStatus, ordersPerPage, currentPage, hideEmpty]);
 
   async function fetchOrders() {
+    
     const response = await api('POST', 'orders', {
       categories: selectedCategories.map((cat) => cat.value),
       tags: selectedTags.map((tag) => tag.value),
@@ -83,6 +84,7 @@ function App() {
       setSelectedCategories(filters.categories);
       setSelectedTags(filters.tags);
       setSelectedStatus(filters.status);
+      setOrdersPerPage(filters.ordersPerPage);
       console.log(filters, 'filters');
     }
     if (window.vz_service_spaces) {
@@ -101,7 +103,7 @@ function App() {
 
   useEffect(() => {
     if (keepUpdating) {
-      setUpdateInterval(setInterval(fetchOrders, 2000));
+      setUpdateInterval(setInterval(fetchOrders, 5000));
     } else {
       clearInterval(updateInterval);
     }
@@ -157,8 +159,25 @@ function App() {
       categories: selectedCategories,
       tags: selectedTags,
       status: selectedStatus,
+      ordersPerPage,
     }));
     console.log('saved!');
+  }
+
+  async function readyToDeliver(orderId, itemId) {
+    try {
+      const response = await api('POST', 'ready', {
+        order_id: orderId,
+        item_index: itemId,
+      });
+      if (response.status === 'success') {
+        setOrders(response.orders);
+      } else {
+        console.error(response);
+      }
+    } catch (error) { 
+      console.error(error);
+    }
   }
 
   return (
@@ -237,12 +256,19 @@ function App() {
                 <p className="order-total">
                   <strong>Total:</strong> {order.total}
                 </p>
-                <p className="vz-ss-order-items">
+                <div className="vz-ss-order-items">
                   <strong>Articulos:</strong>
                   <ul>
-                    {order.items.map((item) => (
+                    {order.items.map((item, index) => (
                       <li key={item.id}>
                         <article className="vz-ss__order-item__card">
+                          <div className="actions">
+                            <button className={`ready-to-serve --${item.delivered ? 'ready' : ''}`}
+
+                                    onClick={() => readyToDeliver(order.id, index)}>
+                              Listo para Servir
+                            </button>
+                          </div>
                           <p className="title">
                             {item.name}
                           </p>
@@ -264,7 +290,7 @@ function App() {
                       </li>
                     )}
                   </ul>
-                </p>
+                </div>
                 {order.notes && (
                   <p className="order-notes">
                     <strong>Notas:</strong> {order.notes}

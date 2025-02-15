@@ -291,7 +291,8 @@ function vz_service_space_details($space_uid, $space_id = null) {
         'product_permalink' => get_permalink($item->get_product_id()),
         'product_name' => $item->get_name(),
         'product_price' => $item->get_total(),
-        'quantity' => $item->get_quantity()
+        'quantity' => $item->get_quantity(),
+        
       ];
     }
     $nOrders[] = [
@@ -302,7 +303,9 @@ function vz_service_space_details($space_uid, $space_id = null) {
       'order_status' => $order->get_status(),
       'order_date' => $order->get_date_created()->date('Y-m-d H:i:s'),
       'billing_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-      'items' => $items
+      'items' => $items,
+      'delivered_products' => get_post_meta($order_id, 'vz_order_delivered_products', true),
+      'ready_products' => get_post_meta($order_id, 'vz_order_ready_products', true),
     ];
     if ($order->get_status() !== 'completed') {
       $pending_payment += intval($order->get_total());
@@ -312,7 +315,6 @@ function vz_service_space_details($space_uid, $space_id = null) {
     'space_title' => get_the_title($space_id),
     'visits' => $nVisits,
     'orders' => $nOrders,
-    'delivered_products' => get_post_meta($space_id, 'vz_space_delivered_products', true),
     'pending_payment' => $pending_payment,
   ];
 }

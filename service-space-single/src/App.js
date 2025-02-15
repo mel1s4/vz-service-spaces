@@ -62,7 +62,6 @@ function App() {
       if (window.vz_service_space_values) {
         setOrders(window.vz_service_space_values.orders);
         setVisitors(window.vz_service_space_values.visits);
-        setDeliveredProducts(window.vz_service_space_values.delivered_products);
         setSpaceTitle(window.vz_service_space_values.space_title);
         setPendingPayment(window.vz_service_space_values.pending_payment);
       }
@@ -94,12 +93,9 @@ function App() {
           'X-WP-Nonce': nonce,
         },
       });
-      const nDeliveredProducts = {...deliveredProducts};
-      if (!nDeliveredProducts[`${order.order_id}`]) {
-        nDeliveredProducts[`${order.order_id}`] = [];
-      }
+     
       if(result.data.status == 'success') {
-        setDeliveredProducts(result.data.delivered_products);
+        window.location.reload();
       } else {
         console.error(result);
       }
@@ -171,8 +167,8 @@ function App() {
   }
 
   function productIsDelivered(order, index) {
-    if (deliveredProducts[order.order_id]) {
-      return deliveredProducts[order.order_id][index];
+    if (order.deliveredProdcuts[index]) {
+      return true;
     }
     return false;
   }

@@ -114,6 +114,14 @@
   .order-date {
     flex-grow: 1; 
   }
+  .order-notes {
+    border: 1px solid #eb2;
+    display: block;
+    padding: 0.5rem;
+    width: 100%;
+    border-radius:  0.5em;
+    background-color: floralwhite;
+  }
 }
 
 .vz-ss-order-items {
@@ -125,7 +133,7 @@
     width: 100%;
   }
   li {
-
+    
   }
 }
 
@@ -141,12 +149,41 @@
   border-bottom: 1px solid #ccc;
   .title {
     flex-grow: 1;
-    width: 100%;
+    width: calc(100% - 3em);
   }
   .quantity {
     font-weight: bold;
   }
   .total {
     font-style: italic;
+  }
+  .actions {
+    .ready-to-serve {
+      width: 2em;
+      height: 2em;
+      border-radius: 50%;
+      border: 2px solid #007bff;
+      text-indent: -99999px;
+      position: relative;
+
+      &:before {
+        content: '';
+        width: 1.5em;
+        height: 1em;
+        border-left: 2px solid #007bff;
+        border-bottom: 2px solid #007bff;
+        display: block;
+        transform: scale(0.8) rotate(-45deg) translate(-50%, -50%);
+        position: absolute;
+        left: 50%;
+        top: -10%;
+      }
+      &.--ready {
+        background-color: #007bff;
+        &:before {
+          border-color: white;
+        }
+      }
+    }
   }
 }
