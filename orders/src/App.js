@@ -49,11 +49,14 @@ function App() {
     }
   }
 
+  function pauseInterval() {
+    setKeepUpdating(false);
+    clearInterval(updateInterval);
+  }
 
   // Listen to filters and pause the interval
   useEffect(() => {
-    setKeepUpdating(false);
-    clearInterval(updateInterval);
+    pauseInterval();
   }, 
   [selectedCategories, selectedTags, selectedStatus, ordersPerPage, currentPage, hideEmpty]);
 
@@ -164,18 +167,25 @@ function App() {
     console.log('saved!');
   }
 
-  async function readyToDeliver(orderId, itemId) {
+  async function updateOrderState(orderId, status) {
     try {
-      const response = await api('POST', 'ready', {
+      const response = await api('POST', 'update_order_state', {
         order_id: orderId,
-        item_index: itemId,
+        status,
       });
       if (response.status === 'success') {
-        setOrders(response.orders);
+        const nOrders = orders.map((order) => {
+          if (order.id === orderId) {
+            order.status = status.replace('wc-', '');
+          }
+          return order;
+        }
+        );
+        setOrders(nOrders);
       } else {
-        console.error(response);
+        alert('Error actualizando el estado de la orden');
       }
-    } catch (error) { 
+    } catch (error) {
       console.error(error);
     }
   }
@@ -248,7 +258,14 @@ function App() {
                   <strong>Cliente:</strong> {order.customer}
                 </p>
                 <p className={`order-status --${order.status}`}>
-                  <strong>Estado:</strong> {order.status}
+                  <select value={`wc-${order.status}`} onChange={(e) => updateOrderState(order.id, e.target.value)}>
+                    {woo_status.map((status) => (
+                      <option value={status.value}
+                              key={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
                 </p>
                 <p className="order-date">
                   <strong>Fecha:</strong> {order.date}
@@ -256,19 +273,15 @@ function App() {
                 <p className="order-total">
                   <strong>Total:</strong> {order.total}
                 </p>
+                <p className={`delivery-location --${order.location.delivery ?? 'local'}`}>
+                  <strong>Entrega:</strong> {order.location.address}
+                </p>
                 <div className="vz-ss-order-items">
                   <strong>Articulos:</strong>
                   <ul>
                     {order.items.map((item, index) => (
                       <li key={item.id}>
                         <article className="vz-ss__order-item__card">
-                          <div className="actions">
-                            <button className={`ready-to-serve --${item.delivered ? 'ready' : ''}`}
-
-                                    onClick={() => readyToDeliver(order.id, index)}>
-                              Listo para Servir
-                            </button>
-                          </div>
                           <p className="title">
                             {item.name}
                           </p>
@@ -284,11 +297,11 @@ function App() {
                         </article>
                       </li>
                     ))}
-                    {order.items.length === 0 && (
+                    {/* {order.items.length === 0 && (
                       <li>
                         <p className="no-items">No hay articulos en esta orden</p>
                       </li>
-                    )}
+                    )} */}
                   </ul>
                 </div>
                 {order.notes && (

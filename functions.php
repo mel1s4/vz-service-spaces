@@ -285,14 +285,14 @@ function vz_service_space_details($space_uid, $space_id = null) {
       $user_login = 'anon_' . $user_id;
     }
     $items = [];
-    foreach ($order->get_items() as $item) {
-      $items[] = [
+    foreach ($order->get_items() as $item_id => $item) {
+      $items[$item_id] = [
         'quantity' => $item->get_quantity(),
         'product_permalink' => get_permalink($item->get_product_id()),
         'product_name' => $item->get_name(),
         'product_price' => $item->get_total(),
         'quantity' => $item->get_quantity(),
-        
+        // 'state' => wc_get_order_item_meta( $item_id, 'vz_ss_state', true );
       ];
     }
     $nOrders[] = [

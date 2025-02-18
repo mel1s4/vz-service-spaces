@@ -6,9 +6,7 @@ function App() {
   const [userIsAdmin, setUserIsAdmin] = useState(true);
   const [spaceUid, setSpaceUid] = useState('initial');
   const [spaceTitle, setSpaceTitle] = useState('initial');
-  const [spaceId, setSpaceId] = useState('initial');
   const [nonce, setNonce] = useState('initial');
-  const [deliveredProducts, setDeliveredProducts] = useState([]);
   const [pendingPayment, setPendingPayment] = useState('initial');
   const [visitors, setVisitors] = useState([
     {
@@ -142,44 +140,44 @@ function App() {
     const timeYears = timeDays / 365;
 
     if (timeSeconds < 60) {
-      return `${Math.round(timeSeconds)} seconds ago`;
+      return `${Math.round(timeSeconds)} segundos`;
     }
     if (timeMinutes < 60) {
-      return `${Math.round(timeMinutes)} minutes ago`;
+      return `${Math.round(timeMinutes)} minutos`;
     }
     if (timeHours < 24) {
-      return `${Math.round(timeHours)} hours ago`;
+      return `${Math.round(timeHours)} horas`;
     }
     if (timeDays < 7) {
-      return `${Math.round(timeDays)} days ago`;
+      return `${Math.round(timeDays)} dias`;
     }
     if (timeWeeks < 4) {
-      return `${Math.round(timeWeeks)} weeks ago`;
+      return `${Math.round(timeWeeks)} semanas`;
     }
     if (timeMonths < 12) {
-      return `${Math.round(timeMonths)} months ago`;
+      return `${Math.round(timeMonths)} meses`;
     }
-    return `${Math.round(timeYears)} years ago`;
+    return `${Math.round(timeYears)} años`;
   }
 
-  function toggleSelf(e) {
-    e.target.classList.toggle('--active');
-  }
-
-  function productIsDelivered(order, index) {
-    if (order.deliveredProdcuts[index]) {
-      return true;
-    }
-    return false;
+  function orderItems(order) {
+    const nOrders = [];
+    Object.keys(order.items).map((key) => {
+      nOrders.push(order.items[key]);
+    });
+    return nOrders;
   }
 
   return (
     <div className="App">
       <header className="vz-ss__login">
-        <button className="vz-ss__go-back" onClick={() => goBack()}>
-          Go Back
-        </button>
-        <h1>{spaceTitle}</h1>
+        <div className="vz-ss__header__title-action">
+          <button className="vz-ss__go-back" 
+                  onClick={() => goBack()}>
+            Regresar
+          </button>
+          <h1>{spaceTitle}</h1>
+        </div>
         <div className="img">
           <img src={qrCode()} alt="QR Code" />
         </div>
@@ -194,7 +192,9 @@ function App() {
           {visitors.length === 0 && (
             <li>
               <article className="vz-ss__no-results">
-                <p className="no-results">No Visitors. Share the code or link to leg them in.</p>
+                <p className="no-results">
+                  No hay visitantes todavia. 
+                </p>
               </article>
             </li>
           )}
@@ -209,19 +209,19 @@ function App() {
         </ul>
       </section>
       <section className='vz-ss__orders'>
-        <h2>Orders</h2>
+        <h2> Órdenes </h2>
         <ul className="vz-ss__order-list">
           {orders.length === 0 && (
             <li>
               <article className="vz-ss__no-results">
-                <p className="no-results">No Orders Yet</p>
+                <p className="no-results"> No hay ordenes todavia </p>
               </article>
             </li>
           )}
           {orders.map((order, index) => (
             <li key={index}>
               <aricle className="vz-ss__order">
-                <div className="vz-ss__order-header" onClick={(e) => toggleSelf(e)}>
+                <div className="vz-ss__order-header">
                   <div className='user-details'>
                     <p className="username">{order.user_login}</p>
                     <p className="billing-name">{order.billing_name}</p>
@@ -233,19 +233,12 @@ function App() {
                   </div>
                 </div>
                 <ol className="vz-ss__product-list">
-                  {order.items.map((item, index) => (
+                  {orderItems(order).map((item, index) => (
                     <li key={index}>
                       <article className="vz-ss__product-card">
                         <a href={item.product_permalink} className="product_name">{item.product_name}</a>
                         <p className="quantity">{item.quantity} x</p>
                         <p className="product_price">${item.product_price}</p>
-                        {userIsAdmin && ( 
-                          <button className={ productIsDelivered(order, index) ? 'delivered-button --delivered' : 'delivered-button' } 
-                                  onClick={(e) => toggleDeliveryState(e, order, index)}> Delivered </button>
-                        )}
-                        {(!userIsAdmin && productIsDelivered(order, index)) && (
-                          <p className="delivered-mark"> Delivered </p>
-                        )}
                       </article>
                     </li>
                   ))}
@@ -257,12 +250,12 @@ function App() {
       </section>
       <section className="vz-ss__footer">
         <p className="vz-ss__pending-payment">
-          Total Due: <b>${pendingPayment}</b>
+          Se deben: <b>${pendingPayment}</b>
         </p>
         {userIsAdmin && (
           <button className="vz-ss__reset-space" 
                   onClick={() => resetServiceSpace()}>
-            Reset Service Space
+            Limpiar Espacio de Servicio
           </button>
         )}
       </section>

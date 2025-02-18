@@ -1,16 +1,10 @@
 <?php 
 add_action('rest_api_init', 'vz_ss_register_rest_routes');
 function vz_ss_register_rest_routes() {
-  register_rest_route('vz-ss/v1', '/delivered/', [
+ 
+  register_rest_route('vz-ss/v1', '/update_order_state/', [
     'methods' => 'POST',
-    'callback' => 'vz_mark_product_as_delivered',
-    'permission_callback' => function () {
-      return current_user_can('edit_posts');
-    },
-  ]);
-  register_rest_route('vz-ss/v1', '/ready/', [
-    'methods' => 'POST',
-    'callback' => 'vz_mark_product_as_ready',
+    'callback' => 'vz_ss_update_order_state',
     'permission_callback' => function () {
       return true;
       return current_user_can('edit_posts');
@@ -41,60 +35,7 @@ function vz_ss_register_rest_routes() {
   ]);
 }
 
-function vz_ss_test($request) {
-  return [
-    'status' => 'success',
-    'message' => 'Hello World'
-  ];
-}
-
-function vz_mark_product_as_delivered($request) {
-  $args = $request->get_params();
-  $order_id = $args['order_id'];
-  $item_index = $args['item_index'] . '';
-  $space_uid = $args['space_uid'];
-  $space_id = vz_get_space_by_uid($space_uid);
-
-  $order_delivered_products = get_post_meta($order_id, 'vz_order_delivered_products', true);
-  if (!$order_delivered_products) {
-    $order_delivered_products = [];
-  }
-  if ($order_delivered_products[$item_index]) {
-    unset($order_delivered_products[$item_index]);
-  } else {
-    $order_delivered_products[$item_index] = time();
-  }
-  update_post_meta($order_id, 'vz_order_delivered_products', $order_delivered_products);
-  return [
-    'status' => 'success',
-    'delivered_products' => $order_delivered_products,
-  ];
-}
-
-
-function vz_mark_product_as_ready($request) {
-  $args = $request->get_params();
-  $order_id = $args['order_id'];
-  $item_index = "" . $args['item_index'];
-
-  $order_ready_products = get_post_meta($order_id, 'vz_order_ready_products', true);
-  if (!$order_ready_products) {
-    $order_ready_products = [];
-  }
-  if ($order_ready_products[$item_index]) {
-    unset($order_ready_products[$item_index]);
-  } else {
-    $order_ready_products[$item_index] = time();
-  }
-  update_post_meta($order_id, 'vz_order_ready_products', $order_ready_products);
-  return [
-    'status' => 'success',
-    'order_ready_products' => $order_ready_products,
-  ];
-}
-
 function vz_ss_reset_space($request) {
-
   $args = $request->get_params(); 
   $space_uid = $args['space_uid'];
   $space_id = vz_get_space_by_uid($space_uid);
@@ -154,8 +95,6 @@ function vz_ss_get_orders_endpoint($request) {
   $formatted_orders = [];
   foreach ($orders as $key => $order_id) {
     $order = wc_get_order($order_id);
-    $delivered_products = get_post_meta($order_id, 'vz_order_delivered_products', true);  
-    $ready_products = get_post_meta($order_id, 'vz_order_ready_products', true);
     $formatted_orders[$key] = [
       'id' => $order_id,
       'number' => $order->get_order_number(),
@@ -166,8 +105,6 @@ function vz_ss_get_orders_endpoint($request) {
       'items' => [],
       'notes' => $order->get_customer_note(),
       'location' => vz_ss_order_location($order_id),
-      'delivered' => $delivered_products,
-    'ready' => $ready_products,
     ];
     $items = $order->get_items();
     $index = 0;
@@ -192,7 +129,6 @@ function vz_ss_get_orders_endpoint($request) {
         'tags' => $product_tags,
         'quantity' => $item->get_quantity(),
         'total' => $item->get_total(),
-        'delivered' => $delivered_products[$index] ? true : false,
         'ready' => $ready_products[$index] ? true : false,
       ];
       $index = $index + 1;
@@ -208,11 +144,11 @@ function vz_ss_get_orders_endpoint($request) {
     ];
   }
 
-  // if ($hide_empty) {
-  //   $formatted_orders = array_filter($formatted_orders, function($order) {
-  //     return count($order['items']) > 0;
-  //   });
-  // }
+  if ($hide_empty) {
+    $formatted_orders = array_filter($formatted_orders, function($order) {
+      return count($order['items']) > 0;
+    });
+  }
 
   return [
     'status' => 'success',
@@ -220,7 +156,6 @@ function vz_ss_get_orders_endpoint($request) {
     'categories' => vz_ss_get_all_product_categories(),
     'tags' => vz_ss_get_all_product_tags(),
     'woo_status' => $status,
-    
   ];
 }
 
@@ -280,6 +215,18 @@ function vz_ss_order_location($order_id) {
 
   return [
     'delivery' => $delivery,
-    'location' => $location,
+    'address' => $location,
+  ];
+}
+
+function vz_ss_update_order_state($request) {
+  $args = $request->get_params();
+  $order_id = $args['order_id'];
+  $status = $args['status'];
+  $order = wc_get_order($order_id);
+  $order->set_status($status);
+  $order->save();
+  return [
+    'status' => 'success',
   ];
 }

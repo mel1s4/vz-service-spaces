@@ -19,7 +19,7 @@
   <title>
     <?php echo get_the_title() ?>
   </title>
-  <link rel="stylesheet" href="<?php echo $plugin_dir .  'service-space-single/build/static/css/main.css' ?>">
+  <link rel="stylesheet" href="<?php echo $plugin_dir .  'single/build/static/css/main.css' ?>">
   <script>
     window.vz_service_space_uid = `<?php echo $uid ?>`;
     window.vz_service_space_values = JSON.parse(`<?php echo JSON_ENCODE(vz_service_space_details($uid)) ?>`);
@@ -33,6 +33,6 @@
     Loading...
   </h1>
 </body>
-  <script src="<?php echo $plugin_dir . 'service-space-single/build/static/js/main.js' ?>" defer>
+  <script src="<?php echo $plugin_dir . 'single/build/static/js/main.js' ?>" defer>
   </script>
 </html>
