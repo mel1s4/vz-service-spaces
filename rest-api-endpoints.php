@@ -1,4 +1,6 @@
 <?php 
+use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
+
 add_action('rest_api_init', 'vz_ss_register_rest_routes');
 function vz_ss_register_rest_routes() {
  
@@ -82,19 +84,22 @@ function vz_ss_get_orders_endpoint($request) {
   $orders_per_page = $args['ordersPerPage'];
   $page = $args['currentPage'];
   $status = $args['status'];
-  $query = new WC_Order_Query( array(
+  $query = new WC_Order_Query(array(
     'limit' => $orders_per_page,
     'page' => $page,
     'orderby' => 'date',
     'order' => 'ASC',
     'return' => 'ids',
     'status' => $status,
-  ) );
+  ));
   $orders = $query->get_orders();
-  
+
   $formatted_orders = [];
   foreach ($orders as $key => $order_id) {
     $order = wc_get_order($order_id);
+    if (!$order || $order->get_type() === 'shop_order_refund') {
+      continue;
+    }
     $formatted_orders[$key] = [
       'id' => $order_id,
       'number' => $order->get_order_number(),
