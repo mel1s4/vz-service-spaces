@@ -1,7 +1,8 @@
 import React, { useState, useEffect, use } from 'react';
 import Select from 'react-select';
-import axios from 'axios';
 import './App.scss';
+import OrderCard from './OrderCard/OrderCard';
+import { api } from './functions.js';
 
 function App() {
   const [blogUrl, setBlogUrl] = useState('http://localhost');
@@ -32,22 +33,6 @@ function App() {
   ]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState([]);
-  async function api(method, endpoint, data = {}) {
-    console.log(blogUrl);
-    try {
-      const response = await axios({
-        method: method,
-        url: `${blogUrl}/wp-json/vz-ss/v1/${endpoint}`,
-        data: data,
-        // headers: {
-        //   'X-WP-Nonce': nonce
-        // }
-      });
-      return response.data;
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   function pauseInterval() {
     setKeepUpdating(false);
@@ -117,6 +102,7 @@ function App() {
   }
 
   function newOrdersDetected(nOrders, old) {
+    return false;
     if (!nOrders || !old || !nOrders.length || !old.length) {
       return false;
     }
@@ -157,6 +143,19 @@ function App() {
     setKeepUpdating(!keepUpdating);
   }
 
+  function orderStateSuccess(orderId, status) {
+    const newOrders = orders.map((order) => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          status: status.replace('wc-', '')
+        };
+      }
+      return order;
+    });
+    setOrders(newOrders);
+  }
+
   function saveFilters() {
     window.localStorage.setItem('vz-ss-filters', JSON.stringify({
       categories: selectedCategories,
@@ -165,29 +164,6 @@ function App() {
       ordersPerPage,
     }));
     console.log('saved!');
-  }
-
-  async function updateOrderState(orderId, status) {
-    try {
-      const response = await api('POST', 'update_order_state', {
-        order_id: orderId,
-        status,
-      });
-      if (response.status === 'success') {
-        const nOrders = orders.map((order) => {
-          if (order.id === orderId) {
-            order.status = status.replace('wc-', '');
-          }
-          return order;
-        }
-        );
-        setOrders(nOrders);
-      } else {
-        alert('Error actualizando el estado de la orden');
-      }
-    } catch (error) {
-      console.error(error);
-    }
   }
 
   return (
@@ -250,66 +226,9 @@ function App() {
         <ul className="vz-ss__orders__list">
           {orders.map((order) => (
             <li key={order.id} className="vz-ss__order">
-              <article className="vz-ss__order-card">
-                <p className="order-id">
-                  <strong>Orden:</strong> #{order.id}
-                </p>
-                <p className="customer">
-                  <strong>Cliente:</strong> {order.customer}
-                </p>
-                <p className={`order-status --${order.status}`}>
-                  <select value={`wc-${order.status}`} onChange={(e) => updateOrderState(order.id, e.target.value)}>
-                    {woo_status.map((status) => (
-                      <option value={status.value}
-                              key={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                </p>
-                <p className="order-date">
-                  <strong>Fecha:</strong> {order.date}
-                </p>
-                <p className="order-total">
-                  <strong>Total:</strong> {order.total}
-                </p>
-                <p className={`delivery-location --${order.location.delivery ?? 'local'}`}>
-                  <strong>Entrega:</strong> {order.location.address}
-                </p>
-                <div className="vz-ss-order-items">
-                  <strong>Articulos:</strong>
-                  <ul>
-                    {order.items.map((item, index) => (
-                      <li key={item.id}>
-                        <article className="vz-ss__order-item__card">
-                          <p className="title">
-                            {item.name}
-                          </p>
-                          <p className="quantity">
-                            x{item.quantity}
-                          </p>
-                          <p className="price">
-                            ${item.price}/u
-                          </p>
-                          <p className="total">
-                            ${item.total}
-                          </p>
-                        </article>
-                      </li>
-                    ))}
-                    {/* {order.items.length === 0 && (
-                      <li>
-                        <p className="no-items">No hay articulos en esta orden</p>
-                      </li>
-                    )} */}
-                  </ul>
-                </div>
-                {order.notes && (
-                  <p className="order-notes">
-                    <strong>Notas:</strong> {order.notes}
-                  </p>
-                )}
-              </article>
+              <OrderCard order={order}
+                         woo_status={woo_status} 
+                        orderStateSuccess={orderStateSuccess} />
             </li>
           ))}
         </ul>
