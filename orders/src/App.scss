@@ -1,4 +1,12 @@
+.vz-ss__orders-app {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 68rem;
+  margin: 0 auto;
+}
+
 .vz-ss__header {
+  width: 100%;
   text-align: center;
   display: flex;
   justify-content: space-between;
@@ -32,14 +40,9 @@
 }
 
 .vz-ss__order-filters {
-  display: grid;
-  justify-content: space-between;
-  max-width: 68rem;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  flex-wrap: wrap;
-  margin: 0 auto;
+  margin: 0;
   padding: 1rem;
-  gap: 1rem;
+  width: 30%;
 }
 
 .vz-ss__filter {
@@ -47,7 +50,7 @@
   flex-flow: column;
   flex-grow: 1;
   min-width: 10rem;
-
+  margin-top: 1rem;
   input {
     padding: 0.8em 0.5em;
     border: 1px solid #ccc;
@@ -55,13 +58,33 @@
   }
 }
 
+.vz-service-spaces__orders {
+  width: 70%;
+}
+
 .vz-ss__orders__list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
   gap: 1rem;
-  max-width: 68rem;
+  width: 100%;
   margin: 0 auto;
   padding: 0;
   list-style: none;
+}
 
+.vz-ss__no-orders {
+  text-align: center;
+  padding: 1rem;
+  border: 1px dashed #ccc;
+  width: 100%;
+  display: block;
+}
+
+@media screen and (max-width: 768px) {
+  .vz-ss__order-filters {
+    width: 100%;
+  }
+  .vz-service-spaces__orders {
+    width: 100%;
+  }
 }

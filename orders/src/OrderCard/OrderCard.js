@@ -8,6 +8,42 @@ const OrderCard = ({
   orderStateSuccess
 }) => {
 
+
+  function formatDate(dte) {
+    // 2025-01-30 20:09:59
+    const [nDate, time] = dte.split(' ');
+    const [year, month, day] = nDate.split('-');
+    const [hour, minute, second] = time.split(':');
+
+    // hoy, ayer, anteayer, o la fecha exacta
+    const today = new Date();
+    const orderDate = new Date(year, month - 1, day);
+    const diff = today - orderDate;
+    const diffDays = diff / (1000 * 60 * 60 * 24);
+    let formattedDate = '';
+    if (diffDays === 0) {
+      formattedDate = 'hoy';
+    } else if (diffDays === 1) {
+      formattedDate = 'ayer';
+    } else if (diffDays === 2) {
+      formattedDate = 'anteayer';
+    } else {
+      formattedDate = `${day}/${month}/${year}`;
+    }
+
+    // si es hoy, mostrar "hace X horas con X minutos"
+    if (formattedDate === 'hoy') {
+      const diffHours = today.getHours() - hour;
+      const diffMinutes = today.getMinutes() - minute;
+      formattedDate = `hace ${diffHours} horas con ${diffMinutes} minutos`;
+    } else {
+      formattedDate = `${formattedDate} a las ${hour}:${minute
+        .split('')
+        .slice(0, 2)
+        .join('')}`;
+    }
+    return formattedDate;
+  }
   async function updateOrderState(orderId, status) {
     try {
       const response = await api('POST', 'update_order_state', {
@@ -46,17 +82,23 @@ const OrderCard = ({
       </div>
     
       <p className="order-date">
-        <strong>Fecha:</strong> {order.date}
+        {formatDate(order.date)}
       </p>
       <p className="order-total">
         <strong>Total:</strong> {order.total}
       </p>
       <p className={`delivery-location --${order.location.delivery ?? 'local'}`}>
-        <strong>Entrega:</strong> {order.location.address}
+        <strong>
+          {
+            order.location.delivery
+              ? 'Enviar a'
+              : 'Entregar en'
+          }
+        </strong> {order.location.address}
       </p>
       <div className="vz-ss-order-items">
         <ul>
-          {order.items.map((item, index) => (
+          {order && order.items && order.items.map((item, index) => (
             <li key={item.id}>
               <article className="vz-ss__order-item__card">
                 <p className="title">

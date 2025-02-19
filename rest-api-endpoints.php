@@ -149,12 +149,6 @@ function vz_ss_get_orders_endpoint($request) {
     ];
   }
 
-  if ($hide_empty) {
-    $formatted_orders = array_filter($formatted_orders, function($order) {
-      return count($order['items']) > 0;
-    });
-  }
-
   return [
     'status' => 'success',
     'orders' => $formatted_orders,

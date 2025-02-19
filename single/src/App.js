@@ -123,12 +123,16 @@ function App() {
   }
 
   function goBack() {
-    window.location.href = blogUrl;
+    if(userIsAdmin) {
+      window.location.href = `${blogUrl}/service-space/`
+    } else {
+      window.location.href = blogUrl;
+    }
   }
 
   function formatTime(time) {
     const timeNow = new Date();
-    const timeThen = new Date(time);
+    const timeThen = new Date(time * 1000);
     console.log(timeNow, timeThen);
     const timeDifference = timeNow - timeThen;
     const timeSeconds = timeDifference / 1000;
@@ -184,7 +188,9 @@ function App() {
         <p>
           {spaceUidReadable()}
         </p>
-        <button onClick={(e) => copyInviteToClipboard(e)}>Copy to Clipboard</button>
+        <button onClick={(e) => copyInviteToClipboard(e)}>
+          Copiar al portapapeles
+        </button>
       </header>
       <section className='vz-ss__visitors'>
         <h2>Visits</h2>

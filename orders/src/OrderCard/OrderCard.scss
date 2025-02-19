@@ -6,7 +6,6 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  max-width: 26rem;
   p {
     margin: 0;
     padding: 0;
@@ -19,14 +18,15 @@
     align-items: center;
   }
   .order-id {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
     color: #cc0033;
   }
   .customer {
-    font-size: 1.2rem;
     font-weight: bold;
     flex-grow: 1;
+    max-width: 10rem;
+    text-overflow: ellipsis;
     text-align: left;
   }
   .order-status {
@@ -83,6 +83,7 @@
 
 .vz-ss-order-items {
   flex-grow: 1;
+  width: 100%;
   ul {
     margin-top: 1rem;
     list-style: none;
@@ -99,7 +100,7 @@
   width: 100%;
   flex-wrap: wrap;
   justify-content:  flex-end;
-  font-size: 1.2rem;
+  font-size: 1rem;
   gap: 0.5rem;
   border-top: 1px solid #ccc;
   padding: 0.5rem 0;

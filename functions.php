@@ -339,3 +339,12 @@ function vz_service_spaces_admin_menu() {
     $url,
   );
 }
+
+// Create a shortcode to display service space details
+function vz_service_space_orders_shortcode($atts) {
+  include 'vz-ss-orders.php';
+  die();
+  ob_start();
+  return ob_get_clean();
+}
+add_shortcode('vz-ss-orders', 'vz_service_space_orders_shortcode');

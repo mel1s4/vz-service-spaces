@@ -91,6 +91,7 @@ function App() {
 
   useEffect(() => {
     if (keepUpdating) {
+      fetchOrders();
       setUpdateInterval(setInterval(fetchOrders, 5000));
     } else {
       clearInterval(updateInterval);
@@ -102,15 +103,7 @@ function App() {
   }
 
   function newOrdersDetected(nOrders, old) {
-    return false;
-    if (!nOrders || !old || !nOrders.length || !old.length) {
-      return false;
-    }
-    for (let i = 0; i < nOrders.length; i++) {
-      if (nOrders[i].orders.length !== old[i].orders.length) {
-        return true;
-      }
-    }
+    console.log(nOrders, old);
     return false;
   }
 
@@ -119,7 +112,7 @@ function App() {
       return;
     } else {
       setPreviousOrders(orders);
-      if (newOrdersDetected(orders, previousOrders)) playSound();
+      playSound();
     }
   }, [orders, previousOrders]);
   
@@ -166,8 +159,20 @@ function App() {
     console.log('saved!');
   }
 
+
+  function toggleHideEmpty() {
+    setHideEmpty(!hideEmpty);
+  }
+
+  function filteredOrders() {
+    if (hideEmpty) {
+      return orders.filter((order) => order.items.length > 0);
+    }
+    return orders;
+  }
+
   return (
-    <div className="App">
+    <div className="vz-ss__orders-app">
       <header className="vz-ss__header">
        <h1> Órdenes </h1>
        <div className="actions">
@@ -180,6 +185,9 @@ function App() {
        </div>
       </header>
       <section className="vz-ss__order-filters">
+        <h2 className="vz-ss__subtitle">
+          Filtros
+        </h2>
         <div className="vz-ss__filter">
           <label> Estado de la Orden </label>
           <Select
@@ -217,20 +225,27 @@ function App() {
             onChange={(e) => setOrdersPerPage(e.target.value)}
           />
           <label>
-            <input type="checkbox" checked={hideEmpty} onChange={() => setHideEmpty(!hideEmpty)} />
+            <input type="checkbox" 
+                  checked={hideEmpty} 
+                  onChange={() => toggleHideEmpty()} />
             Esconder Ordenes sin Productos
           </label>
         </div>
       </section>
       <main className="vz-service-spaces__orders">
         <ul className="vz-ss__orders__list">
-          {orders.map((order) => (
+          {filteredOrders().map((order) => (
             <li key={order.id} className="vz-ss__order">
               <OrderCard order={order}
                          woo_status={woo_status} 
                         orderStateSuccess={orderStateSuccess} />
             </li>
           ))}
+          {orders.length === 0 && (
+            <p className="vz-ss__no-orders">
+              No se encontraron ordenes
+            </p>
+          )}
         </ul>
       </main>
     </div>
