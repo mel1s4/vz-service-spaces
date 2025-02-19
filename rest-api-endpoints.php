@@ -8,7 +8,6 @@ function vz_ss_register_rest_routes() {
     'methods' => 'POST',
     'callback' => 'vz_ss_update_order_state',
     'permission_callback' => function () {
-      return true;
       return current_user_can('edit_posts');
     },
   ]);
@@ -23,7 +22,6 @@ function vz_ss_register_rest_routes() {
     'methods' => 'POST',
     'callback' => 'vz_ss_get_service_spaces_endpoint',
     'permission_callback' => function () {
-      return true;
       return current_user_can('edit_posts');
     },
   ]);
@@ -31,7 +29,6 @@ function vz_ss_register_rest_routes() {
     'methods' => 'POST',
     'callback' => 'vz_ss_get_orders_endpoint',
     'permission_callback' => function () {
-      return true;
       return current_user_can('edit_posts');
     },
   ]);
@@ -75,9 +72,8 @@ function vz_ss_get_service_spaces() {
   }
   return $nss;
 }
- 
-function vz_ss_get_orders_endpoint($request) {
-  $args = $request->get_params();
+
+function vz_ss_get_orders($args) {
   $categories = $args['categories'];
   $tags = $args['tags'];
   $hide_empty = $args['hideEmpty'];
@@ -112,20 +108,17 @@ function vz_ss_get_orders_endpoint($request) {
       'location' => vz_ss_order_location($order_id),
     ];
     $items = $order->get_items();
-    $index = 0;
     foreach ($items as $item_id => $item) {
       $product = $item->get_product();
       $product_categories = $product->get_category_ids();
       $product_tags = $product->get_tag_ids();
-      if (
-        ($categories && !array_intersect($categories, $product_categories))
-        ||
-        ($tags && !array_intersect($tags, $product_tags))
-      ) {
-        $index = $index + 1;
-        continue;
+      // php xor
+      if (sizeof($categories) > 0 || sizeof($tags) > 0) {
+        if (!sizeof(array_intersect($categories, $product_categories)) && !sizeof(array_intersect($tags, $product_tags))) {
+          continue;
+        }
       }
-      $formatted_orders[$key]['items'][$index] = [
+      $formatted_orders[$key]['items'][] = [
         'id' => $product->get_id(),
         'name' => $product->get_name(),
         'sku' => $product->get_sku(),
@@ -134,12 +127,17 @@ function vz_ss_get_orders_endpoint($request) {
         'tags' => $product_tags,
         'quantity' => $item->get_quantity(),
         'total' => $item->get_total(),
-        'ready' => $ready_products[$index] ? true : false,
       ];
-      $index = $index + 1;
     }
   }
 
+  return [
+    'status' => 'success',
+    'orders' => $formatted_orders,
+  ];
+}
+
+function vz_ss_woo_statuses() {
   $status = [];
   $statuses = wc_get_order_statuses();
   foreach ($statuses as $key => $value) {
@@ -148,14 +146,12 @@ function vz_ss_get_orders_endpoint($request) {
       'label' => $value,
     ];
   }
-
-  return [
-    'status' => 'success',
-    'orders' => $formatted_orders,
-    'categories' => vz_ss_get_all_product_categories(),
-    'tags' => vz_ss_get_all_product_tags(),
-    'woo_status' => $status,
-  ];
+  return $status;
+}
+ 
+function vz_ss_get_orders_endpoint($request) {
+  $args = $request->get_params();
+  return vz_ss_get_orders($args);
 }
 
 function vz_ss_get_all_product_categories() {
@@ -168,7 +164,7 @@ function vz_ss_get_all_product_categories() {
   $product_categories = get_terms($args);
   $categories = [];
   foreach ($product_categories as $key => $category) {
-    $categories[$key] = [
+    $categories[] = [
       'value' => $category->term_id,
       'label' => $category->name,
     ];
@@ -186,7 +182,7 @@ function vz_ss_get_all_product_tags() {
   $product_tags = get_terms($args);
   $tags = [];
   foreach ($product_tags as $key => $tag) {
-    $tags[$key] = [
+    $tags[] = [
       'value' => $tag->term_id,
       'label' => $tag->name,
     ];

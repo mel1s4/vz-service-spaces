@@ -39,29 +39,32 @@ function App() {
     clearInterval(updateInterval);
   }
 
-  // Listen to filters and pause the interval
   useEffect(() => {
-    pauseInterval();
+    if (keepUpdating) {
+      clearInterval(updateInterval);
+      fetchOrders();
+      setUpdateInterval(setInterval(fetchOrders, 5000));
+    }
   }, 
   [selectedCategories, selectedTags, selectedStatus, ordersPerPage, currentPage, hideEmpty]);
 
   async function fetchOrders() {
-    
-    const response = await api('POST', 'orders', {
-      categories: selectedCategories.map((cat) => cat.value),
-      tags: selectedTags.map((tag) => tag.value),
-      ordersPerPage,
-      currentPage,
-      hideEmpty,
-      status: selectedStatus.map((status) => status.value),
-    });
-    if (response.status === 'success') {
-      setOrders(response.orders);
-      setProductCategories(response.categories);
-      setProductTags(response.tags);
-      setWooStatus(response.woo_status);
-    } else {
-      console.error('Error fetching service spaces');
+    try {
+      const response = await api('POST', 'orders', {
+        categories: selectedCategories.map((cat) => cat.value),
+        tags: selectedTags.map((tag) => tag.value),
+        ordersPerPage,
+        currentPage,
+        hideEmpty,
+        status: selectedStatus.map((status) => status.value),
+      });
+      if (response.status === 'success') {
+        setOrders(response.orders);
+      } else {
+        console.error('Error fetching service spaces');
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -75,17 +78,14 @@ function App() {
       setOrdersPerPage(filters.ordersPerPage);
       console.log(filters, 'filters');
     }
-    if (window.vz_service_spaces) {
-      setOrders(window.vz_service_spaces);
+    if (window.vz_ss_categories) {
+      setProductCategories(window.vz_ss_categories);
     }
-    if (window.vz_nonce) {
-      setNonce(window.vz_nonce);
+    if (window.vz_ss_tags) {
+      setProductTags(window.vz_ss_tags);
     }
-    if (window.vz_blog_url) {
-      setBlogUrl(window.vz_blog_url);
-    }
-    if (window.woo_status) {
-      setWooStatus(window.woo_status);
+    if (window.vz_ss_woo_status) {
+      setWooStatus(window.vz_ss_woo_status);
     }
   }, []);
 
@@ -185,9 +185,6 @@ function App() {
        </div>
       </header>
       <section className="vz-ss__order-filters">
-        <h2 className="vz-ss__subtitle">
-          Filtros
-        </h2>
         <div className="vz-ss__filter">
           <label> Estado de la Orden </label>
           <Select

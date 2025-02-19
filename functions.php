@@ -292,7 +292,6 @@ function vz_service_space_details($space_uid, $space_id = null) {
         'product_name' => $item->get_name(),
         'product_price' => $item->get_total(),
         'quantity' => $item->get_quantity(),
-        // 'state' => wc_get_order_item_meta( $item_id, 'vz_ss_state', true );
       ];
     }
     $nOrders[] = [
@@ -326,8 +325,6 @@ function vz_get_visitor_from_uuid($uuid) {
   return get_userdata(intval($uuid))->user_login;
 }
 
-
-// add menu option to the post type vz-service-spaces that takes the admin directly to the archive page
 add_action('admin_menu', 'vz_service_spaces_admin_menu');
 function vz_service_spaces_admin_menu() {
   $url = get_bloginfo('url') . '/service-space/';
@@ -344,7 +341,6 @@ function vz_service_spaces_admin_menu() {
 function vz_service_space_orders_shortcode($atts) {
   include 'vz-ss-orders.php';
   die();
-  ob_start();
-  return ob_get_clean();
+  return;
 }
 add_shortcode('vz-ss-orders', 'vz_service_space_orders_shortcode');

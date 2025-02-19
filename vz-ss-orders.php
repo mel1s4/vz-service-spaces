@@ -13,6 +13,9 @@
   <script>
     window.vz_ss_nonce = `<?php echo wp_create_nonce('wp_rest') ?>`;
     window.vz_ss_blog_url = `<?php echo get_bloginfo('url') ?>`;
+    window.vz_ss_categories = JSON.parse(`<?php echo json_encode(vz_ss_get_all_product_categories()) ?>`);
+    window.vz_ss_tags = JSON.parse(`<?php echo json_encode(vz_ss_get_all_product_tags()) ?>`);
+    window.vz_ss_woo_status = JSON.parse(`<?php echo json_encode(vz_ss_woo_statuses()) ?>`);
   </script>
 </head>
 <body id="root">
