@@ -9,6 +9,7 @@ if (isset($_COOKIE['vz_space_uid'])) {
 }
 
 $space_id = vz_get_space_by_uid($space_uid);
+if (!$space_id) return;
 // $user_id = isset($_COOKIE['vz_space_user_id']) ? $_COOKIE['vz_space_user_id'] : 'Guest';
 
 ?>

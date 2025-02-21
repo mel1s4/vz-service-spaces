@@ -78,30 +78,6 @@ function App() {
     }
   }, [window]);
 
-  async function toggleDeliveryState(e, order, index) {
-    const params = {
-      space_uid: spaceUid,
-      order_id: order.order_id,
-      item_index: index,
-      nonce: nonce,
-    };
-    try {
-      const result = await axios.post(`${blogUrl}/wp-json/vz-ss/v1/delivered/`, params, {
-        headers: {
-          'X-WP-Nonce': nonce,
-        },
-      });
-     
-      if(result.data.status == 'success') {
-        window.location.reload();
-      } else {
-        console.error(result);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   async function resetServiceSpace() {
     const params = {
       space_uid: spaceUid,
@@ -189,7 +165,7 @@ function App() {
           {spaceUidReadable()}
         </p>
         <button onClick={(e) => copyInviteToClipboard(e)}>
-          Copiar al portapapeles
+          Copiar
         </button>
       </header>
       <section className='vz-ss__visitors'>
@@ -226,7 +202,7 @@ function App() {
           )}
           {orders.map((order, index) => (
             <li key={index}>
-              <aricle className="vz-ss__order">
+              <article className="vz-ss__order">
                 <div className="vz-ss__order-header">
                   <div className='user-details'>
                     <p className="username">{order.user_login}</p>
@@ -249,7 +225,7 @@ function App() {
                     </li>
                   ))}
                 </ol>
-              </aricle>
+              </article>
             </li>
           ))}
         </ul>
@@ -261,7 +237,7 @@ function App() {
         {userIsAdmin && (
           <button className="vz-ss__reset-space" 
                   onClick={() => resetServiceSpace()}>
-            Limpiar Espacio de Servicio
+            Reestablecer
           </button>
         )}
       </section>

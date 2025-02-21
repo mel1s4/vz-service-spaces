@@ -16,9 +16,9 @@ function App() {
         method: method,
         url: `${blogUrl}/wp-json/vz-ss/v1/${endpoint}`,
         data: data,
-        // headers: {
-        //   'X-WP-Nonce': nonce
-        // }
+        headers: {
+          'X-WP-Nonce': nonce
+        }
       });
       return response.data;
     } catch (error) {
@@ -34,7 +34,6 @@ function App() {
       console.error('Error fetching service spaces');
     }
   }
-
 
   useEffect(() => {
     if (window.vz_service_spaces) {
@@ -137,9 +136,14 @@ function App() {
     <div className="App">
       <header className="vz-ss__header">
        <h1> Mesas </h1>
-       <button onClick={() => toggleUpdate()} className={keepUpdating ? '--active' : ''}>
-        {keepUpdating ? 'Parar actualizacion' : 'Actualizacion automatica'}
-       </button>
+       <div className="vz-ss__header-actions">
+        <a href={`${blogUrl}/ordenes/`} rel="noopener noreferrer">
+            Ver Ordenes
+          </a>
+        <button onClick={() => toggleUpdate()} className={keepUpdating ? '--active' : ''}>
+          {keepUpdating ? 'Detener' : 'Actualizar'}
+        </button>
+       </div>
       </header>
       <main className="vz-service-spaces__archive">
         <ul className="vz-ss__list">
@@ -154,10 +158,10 @@ function App() {
                   <strong>Orders:</strong> {serviceSpace.orders.length}
                 </p>
                 <p className="items">
-                  <strong>Items:</strong> {vzDeliveredItems(serviceSpace.delivered_products)} / {vzTotalItems(serviceSpace.orders)}
+                  <strong>Items:</strong> {vzTotalItems(serviceSpace.orders)}
                 </p>
                   <p className="login"> Iniciaron: { vzGetFirstLogIn(serviceSpace.visits)}</p>                
-                <a className="vz-ss__view-space" href={serviceSpace.url} target="_blank" rel="noopener noreferrer">
+                <a className="vz-ss__view-space" href={serviceSpace.url} rel="noopener noreferrer">
                   Ver Mesa
                 </a>
               </div>

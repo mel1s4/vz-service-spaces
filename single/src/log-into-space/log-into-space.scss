@@ -1,58 +1,8 @@
 
-#vz-service-spaces-footer {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  z-index: 5;
-  border: 1px solid #333;
-  overflow: hidden;
-  border-bottom: 2px solid red;
-  display: flex;
-  font-size: 20px;
-  transform: translateX(-50%);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  border-top-left-radius: 0.5em;
-  border-top-right-radius: 0.5em;
-  background: white;
-  
-  .vz-ss-link, button {
-    margin: 0;
-    padding: 0.5em 1em;
-    font-size: inherit;
-    border: none;
-  }
- 
-  .vz-ss-link {
-    text-decoration: none;
-    padding: 0.5em 2em;
-  }
-  button {
-    background-color: #eee;
-    font-weight: bold;
-    cursor: pointer;
-    &:hover {
-      background-color: #ccc;
-    }
-  }
-
-  &:after {
-    content: '';
-    position: fixed;
-    display: block;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 7px;
-    z-index: 6;
-  }
-}
-
-
 
 .LogIntoSpace {
   background-color: #C03;
   padding: 0.5rem;
-  padding-top: 1rem;
   * {
     box-sizing: border-box;
   }
@@ -60,26 +10,29 @@
     color: white;
     font-size: 1.2rem;
     margin: 0;
-    padding: 0 0.5em;
+    padding: 0;
   }
   form {
     position: relative;
     width: 100%;
     max-width: 20rem;
-    height: 5rem;
-    margin-top: 0.8rem;
+    height: 3rem;
+    margin-top: 1rem;
   }
   button {
     position: absolute;
-    right: 0rem;
+    right: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
     padding: 0.5em 1em;
-    background-color: #eb2;
-    color: black;
+    background-color: #059;
+    color: white;
     border: none;
     border-radius: 0.5em;
     font-size: 1rem;
+    &.--disabled {
+      background-color: #999;
+    }
   }
   input {
     opacity: 0;
@@ -89,12 +42,12 @@
     left: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
-    padding: 0.8em;
+    padding: 0.5em;
     background-color: transparent;
     font-size: 1rem;
     display: block;
     width: 100%;
-    height: 2.8rem;
+    height: 2rem;
     line-height: 1;
     border: none;
     margin: 0;
@@ -118,21 +71,13 @@
   input:not(:placeholder-shown) + label {
     top: 10%;
     font-size: 0.7rem;
-    height: 1.8rem;
+    height: 1.5rem;
   }
   p, label {
     pointer-events: none;
   }
   p {
     color: #059;
-  }
-  .error {
-    color: #ddd;
-    position: absolute;
-    bottom: 0rem;
-    left: 0.5rem;
-    font-size: 0.7rem;
-
   }
   label {
     transition: all 0.2s ease;
@@ -150,22 +95,5 @@
   }
   to {
     opacity: 1;
-  }
-}
-
-.vz-ss__shipping-address-notice {
-  font-size: 0.8em;
-  text-align: center;
-  background-color: #EEE;
-  border: 1px solid #333;
-  font-weight: bold;
-  border-radius: 0.5em;
-  padding: 0.5em;
-  width: 100%;
-  margin-top: 0.5em;
-  p {
-    font-size: 0.8em;
-    padding: 0;
-    margin: 0;
   }
 }

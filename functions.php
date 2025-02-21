@@ -3,7 +3,7 @@
 Plugin Name: Viroz Service Spaces
 Plugin URI: https://viroz.studio/project/
 Description: Creates a custom post type for service spaces where clients can log in and make orders from.
-Version: 0.0.1
+Version: 0.1.0
 Author: Melisa Viroz
 Author URI: http://melisaviroz.com
 License: GPL2
@@ -118,6 +118,7 @@ function vz_service_spaces_admin_styles() {
 add_action('admin_enqueue_scripts', 'vz_service_spaces_admin_styles');
 
 function vz_service_spaces_styles() {
+  wp_enqueue_script('vz_service_spaces_js', plugin_dir_url(__FILE__) . 'functions.js', ['jquery'], null, true);
   wp_enqueue_style('vz_service_spaces_css', plugin_dir_url(__FILE__) . 'styles.css');
 }
 add_action('wp_enqueue_scripts', 'vz_service_spaces_styles');
@@ -176,7 +177,7 @@ function vz_service_spaces_footer_content() {
 add_action('wp_footer', 'vz_service_spaces_footer_content');
 
 function vz_get_space_by_uid($uid) {
-  return get_posts([
+  $posts = get_posts([
     'post_type' => 'vz-service-space',
     'posts_per_page' => 1,
     'post_status' => 'publish',
@@ -187,7 +188,11 @@ function vz_get_space_by_uid($uid) {
         'value' => $uid
       ]
     ]
-  ])[0];
+  ]);
+  if (!$posts) {
+    return false;
+  }
+  return $posts[0];
 }
 
 // add custom field to checkout
@@ -286,7 +291,9 @@ function vz_service_space_details($space_uid, $space_id = null) {
     }
     $items = [];
     foreach ($order->get_items() as $item_id => $item) {
-      $items[$item_id] = [
+      $items[] = [
+        'product_id' => $item->get_product_id(),
+        'item_id' => $item_id,
         'quantity' => $item->get_quantity(),
         'product_permalink' => get_permalink($item->get_product_id()),
         'product_name' => $item->get_name(),
@@ -344,3 +351,10 @@ function vz_service_space_orders_shortcode($atts) {
   return;
 }
 add_shortcode('vz-ss-orders', 'vz_service_space_orders_shortcode');
+
+add_shortcode('vz-ss-log-into-space', 'vz_service_space_log_into_space_shortcode');
+function vz_service_space_log_into_space_shortcode($atts) {
+  ob_start();
+  include 'log-into-space.php';
+  return ob_get_clean();
+}

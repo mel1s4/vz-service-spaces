@@ -176,11 +176,14 @@ function App() {
       <header className="vz-ss__header">
        <h1> Órdenes </h1>
        <div className="actions">
+        <a href={`${blogUrl}/service-space/`} rel="noopener noreferrer">
+          Ver Mesas
+        </a>
         <button className="vz-ss__save-filters" onClick={() => saveFilters()}>
-            Guardar Filtros
+            Guardar
         </button>
         <button onClick={() => toggleUpdate()} className={keepUpdating ? '--active' : ''}>
-          {keepUpdating ? 'Parar actualizacion' : 'Actualizacion automatica'}
+          {keepUpdating ? 'Detener' : 'Actualizar'}
         </button>
        </div>
       </header>
