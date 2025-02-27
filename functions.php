@@ -10,12 +10,6 @@ License: GPL2
 */
 use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
 
-// allow cross origin
-add_action('init', 'vz_service_spaces_allow_cors');
-function vz_service_spaces_allow_cors() {
-  header("Access-Control-Allow-Origin: *");
-}
-
 // requires woocommerce, send an alert if it's not installed
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
   add_action('admin_notices', 'vz_service_spaces_alert');

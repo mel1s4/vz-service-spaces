@@ -8,7 +8,6 @@ function App() {
   const [serviceSpaces, setServiceSpaces] = useState([]);
   const [keepUpdating, setKeepUpdating] = useState(false);
   const [updateInterval, setUpdateInterval] = useState(null);
-  const [previousServiceSpaces, setPreviousServiceSpaces] = useState([]);
   async function api(method, endpoint, data = {}) {
     console.log(blogUrl);
     try {
@@ -55,47 +54,6 @@ function App() {
     }
   }, [keepUpdating]);
 
-  function twoObjectsAreEqual(obj1, obj2) {
-    return JSON.stringify(obj1) === JSON.stringify(obj2);
-  }
-
-  function newOrdersDetected(nOrders, old) {
-    if (!nOrders.length || !old.length) {
-      return false;
-    }
-    for (let i = 0; i < nOrders.length; i++) {
-      if (nOrders[i].orders.length !== old[i].orders.length) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  useEffect(() => {
-    if (twoObjectsAreEqual(serviceSpaces, previousServiceSpaces)) {
-      return;
-    } else {
-      setPreviousServiceSpaces(serviceSpaces);
-      if (newOrdersDetected(serviceSpaces, previousServiceSpaces)) playSound();
-    }
-  }, [serviceSpaces, previousServiceSpaces]);
-  
-
-  async function playSound() {
-    let audio = null;
-    if (window.vz_bell_url) {
-      audio = new Audio(window.vz_bell_url);
-    } else {
-      audio = new Audio('bell.mp3');      
-    }
-    const pAudio = audio.play();  
-    try {
-      await pAudio;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   function vzTotalItems(orders) {
     let total = 0;
     if (!orders) {
@@ -107,17 +65,6 @@ function App() {
     return total;
   }
 
-  function vzDeliveredItems(deliveredProducts) {
-    let total = 0;
-    if (!deliveredProducts) {
-      return total;
-    }
-    Object.keys(deliveredProducts).forEach(key => {
-      total += deliveredProducts[key].length;
-    });
-    return total;
-  }
-
   function vzGetFirstLogIn(visits) {
     if (!visits || visits.length == 0) {
       return '';
@@ -125,7 +72,22 @@ function App() {
     visits.sort((a, b) => b.time - a.time);
     const time = visits[0].time;
     const date = new Date(time * 1000);
-    return date.toLocaleString();
+    const locale = date.toLocaleDateString();
+    const [month, day, year] = locale.split('/');
+    const weekday = date.toLocaleDateString('es-ES', { weekday: 'long' });
+    const months = "Enero Febrero Marzo Abril Mayo Junio Julio Agosto Septiembre Octubre Noviembre Diciembre".split(" ");
+    const M = months[parseInt(month) - 1];
+    const [hour, minute] = date.toLocaleTimeString().split(':');
+    let meridian = 'am';
+    if (hour > 12) {
+      hour -= 12;
+      meridian = 'pm';
+    }
+    const today = new Date();
+    if (date.toDateString() == today.toDateString()) {
+      return `Hoy a las ${hour}:${minute} ${meridian}`;
+    }
+    return `${weekday} ${day} de ${M}, ${year} a las ${hour}:${minute} ${meridian}`;
   }
 
   function toggleUpdate() {

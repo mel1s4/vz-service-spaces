@@ -1,11 +1,19 @@
 
 .vz-ss__order-card {
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 0.3em;
   padding: 0.5rem;
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  transition: 0.2s all;
+  &.--loading {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: blur(1px);
+    cursor: not-allowed;
+  }
   p {
     margin: 0;
     padding: 0;
@@ -43,6 +51,7 @@
         color: black;
       }
     }
+    
     &.--pending {
       background-color: purple;
     }
@@ -84,7 +93,7 @@
 .vz-ss-order-items {
   flex-grow: 1;
   width: 100%;
-  ul {
+  .vz-ss-order-items__list {
     margin-top: 1rem;
     list-style: none;
     padding: 0;
@@ -114,4 +123,23 @@
   .total {
     font-style: italic;
   }
+  .categories,
+  .tags {
+    list-style: none;
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8rem;
+    color: #059;
+    li {
+      padding: 0.2em;
+      border: 1px solid black;
+      border-radius: 0.3em;
+    }
+  }
+  .categories li {
+    border-color: #c03;
+    color: #c03;
+  }
+  
 }

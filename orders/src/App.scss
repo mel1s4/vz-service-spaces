@@ -1,3 +1,7 @@
+body {
+  background-color: #EEE;
+}
+
 .vz-ss__orders-app {
   display: flex;
   flex-wrap: wrap;
@@ -15,48 +19,51 @@
   text-align: center;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  align-items: center;
   max-width: 68rem;
   margin: 0 auto;
   padding: 1rem 0;
   h1 {
     margin: 0;
     padding: 0;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  button, a {
-    display: inline-block;
-    background-color: #007bff;
-    border: none;
-    color: white;
-    padding: 0.5em 0.8em;
-    border-radius: 0.3em;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 0.8rem;
-    margin: 0;
-    cursor: pointer;
-    border: 1px solid #007bff;
-    &.--active {
-      background-color: #cc0033;
-      border-color: #cc0033;
-    }
+}
+
+.vz-ss__button, .vz-ss__button-lite {
+  display: inline-block;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 0.5em 0.8em;
+  border-radius: 0.3em;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 0.8rem;
+  margin: 0;
+  cursor: pointer;
+  border: 1px solid #007bff;
+  &.--active {
+    background-color: #cc0033;
+    border-color: #cc0033;
   }
-  a {
-    background-color: transparent;
-    color: #007bff;
-  }
+}
+.vz-ss__button-lite {
+ background-color: white;
+ color: #007bff;
 }
 
 .vz-ss__order-filters {
   margin: 0;
-  padding: 1rem 0;
+  padding: 0;
   width: calc(30% - 1rem);
 }
 
@@ -65,7 +72,7 @@
   flex-flow: column;
   flex-grow: 1;
   min-width: 10rem;
-  margin-top: 1rem;
+  margin-bottom: 1rem;
   font-size: 1rem;
   input {
     padding: 0.8em 0.5em;

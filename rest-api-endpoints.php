@@ -7,31 +7,28 @@ function vz_ss_register_rest_routes() {
   register_rest_route('vz-ss/v1', '/update_order_state/', [
     'methods' => 'POST',
     'callback' => 'vz_ss_update_order_state',
-    'permission_callback' => function () {
-      return current_user_can('edit_posts');
-    },
+    'permission_callback' => 'vz_ss_permission_check',
   ]);
   register_rest_route('vz-ss/v1', '/reset_space/', [
     'methods' => 'POST',
     'callback' => 'vz_ss_reset_space',
-    'permission_callback' => function () {
-      return current_user_can('edit_posts');
-    },
+    'permission_callback' => 'vz_ss_permission_check',
   ]);
   register_rest_route('vz-ss/v1', '/service_spaces/', [
     'methods' => 'POST',
     'callback' => 'vz_ss_get_service_spaces_endpoint',
-    'permission_callback' => function () {
-      return current_user_can('edit_posts');
-    },
+    'permission_callback' => 'vz_ss_permission_check',
   ]);
   register_rest_route('vz-ss/v1', '/orders/', [
     'methods' => 'POST',
     'callback' => 'vz_ss_get_orders_endpoint',
-    'permission_callback' => function () {
-      return current_user_can('edit_posts');
-    },
+    'permission_callback' => 'vz_ss_permission_check',
   ]);
+}
+
+function vz_ss_permission_check() {
+  // return true;
+  return current_user_can('edit_others_posts');
 }
 
 function vz_ss_reset_space($request) {
@@ -112,7 +109,17 @@ function vz_ss_get_orders($args) {
       $product = $item->get_product();
       $product_categories = $product->get_category_ids();
       $product_tags = $product->get_tag_ids();
-      // php xor
+      $categories_names = [];
+      foreach ($product_categories as $j => $tid) {
+        $term = get_term($tid);
+        $categories_names[] = $term->name;
+      }
+      $tags_names = [];
+      foreach ($product_tags as $f => $tid) {
+        $term = get_term($tid);
+        $tags_names[] = $term->name;
+      }
+
       if (sizeof($categories) > 0 || sizeof($tags) > 0) {
         if (!sizeof(array_intersect($categories, $product_categories)) && !sizeof(array_intersect($tags, $product_tags))) {
           continue;
@@ -123,8 +130,8 @@ function vz_ss_get_orders($args) {
         'name' => $product->get_name(),
         'sku' => $product->get_sku(),
         'price' => $product->get_price(),
-        'categories' => $product_categories,
-        'tags' => $product_tags,
+        'categories' => $categories_names,
+        'tags' => $tags_names,
         'quantity' => $item->get_quantity(),
         'total' => $item->get_total(),
       ];
@@ -132,8 +139,11 @@ function vz_ss_get_orders($args) {
   }
 
   return [
-    'status' => 'success',
+    'status' => 'success', 
     'orders' => $formatted_orders,
+    'product_categories' => vz_ss_get_all_product_categories(),
+    'product_tags' => vz_ss_get_all_product_tags(),
+    'woo_status' => vz_ss_woo_statuses(),
   ];
 }
 

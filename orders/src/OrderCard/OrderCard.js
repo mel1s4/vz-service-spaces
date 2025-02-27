@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './OrderCard.scss';
 import { api } from '../functions.js';
 
@@ -7,6 +7,7 @@ const OrderCard = ({
   woo_status,
   orderStateSuccess
 }) => {
+  const [loading, setLoading] = useState(false);
 
 
   function formatDate(dte) {
@@ -14,7 +15,6 @@ const OrderCard = ({
     const [nDate, time] = dte.split(' ');
     const [year, month, day] = nDate.split('-');
     const [hour, minute, second] = time.split(':');
-
     // hoy, ayer, anteayer, o la fecha exacta
     const today = new Date();
     const orderDate = new Date(year, month - 1, day);
@@ -45,23 +45,26 @@ const OrderCard = ({
     return formattedDate;
   }
   async function updateOrderState(orderId, status) {
+    const prevStatus = order.status;
+    orderStateSuccess(orderId, status);
+    setLoading(true);
     try {
       const response = await api('POST', 'update_order_state', {
         order_id: orderId,
         status,
       });
-      if (response.status === 'success') {
-        orderStateSuccess(orderId, status);
-      } else {
+      if (response.status !== 'success') {
+        orderStateSuccess(orderId, prevStatus);
         alert('Error actualizando el estado de la orden');
       }
+      setLoading(false);
     } catch (error) {
       console.error(error);
     }
   }
 
   return (
-    <article className="vz-ss__order-card">
+    <article className={`vz-ss__order-card ${loading ? '--loading' : ''}`}>
       <div className={`order-status --${order.status}`}>
         <select value={`wc-${order.status}`} onChange={(e) => updateOrderState(order.id, e.target.value)}>
           {woo_status.map((status) => (
@@ -85,9 +88,9 @@ const OrderCard = ({
         {formatDate(order.date)}
       </p>
       <p className="order-total">
-        <strong>Total:</strong> {order.total}
+        ${order.total}
       </p>
-      <p className={`delivery-location --${order.location.delivery ?? 'local'}`}>
+      <p className={`delivery-location --${order.location.delivery ? 'delivery' : 'pickup'}`}>
         <strong>
           {
             order.location.delivery
@@ -97,7 +100,7 @@ const OrderCard = ({
         </strong> {order.location.address}
       </p>
       <div className="vz-ss-order-items">
-        <ul>
+        <ul className="vz-ss-order-items__list">
           {order && order.items && order.items.map((item, index) => (
             <li key={item.id}>
               <article className="vz-ss__order-item__card">
@@ -107,12 +110,21 @@ const OrderCard = ({
                 <p className="quantity">
                   x{item.quantity}
                 </p>
-                <p className="price">
-                  ${item.price}/u
-                </p>
-                <p className="total">
-                  ${item.total}
-                </p>
+                <ul className="categories">
+                  {item.categories.map((category) => (
+                    <li key={category}>
+                      @{category}
+                    </li>
+                  ))}
+                </ul>
+                <ul className="tags">
+                  {item.tags.map((tag) => (
+                    <li key={tag}>
+                      #{tag}
+                    </li>
+                  ))}
+                </ul>
+                
               </article>
             </li>
           ))}

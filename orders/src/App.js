@@ -6,7 +6,6 @@ import { api } from './functions.js';
 
 function App() {
   const [blogUrl, setBlogUrl] = useState('http://localhost');
-  const [nonce, setNonce] = useState('');
   const [hideEmpty, setHideEmpty] = useState(false);
   const [orders, setOrders] = useState([]);
   const [ordersPerPage, setOrdersPerPage] = useState(10);
@@ -34,11 +33,6 @@ function App() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState([]);
 
-  function pauseInterval() {
-    setKeepUpdating(false);
-    clearInterval(updateInterval);
-  }
-
   useEffect(() => {
     if (keepUpdating) {
       clearInterval(updateInterval);
@@ -60,6 +54,9 @@ function App() {
       });
       if (response.status === 'success') {
         setOrders(response.orders);
+        setProductCategories(response.product_categories);
+        setProductTags(response.product_tags);
+        setWooStatus(response.woo_status);
       } else {
         console.error('Error fetching service spaces');
       }
@@ -77,6 +74,9 @@ function App() {
       setSelectedStatus(filters.status);
       setOrdersPerPage(filters.ordersPerPage);
       console.log(filters, 'filters');
+    }
+    if (window.vz_blog_url) {
+      setBlogUrl(window.vz_blog_url);
     }
     if (window.vz_ss_categories) {
       setProductCategories(window.vz_ss_categories);
@@ -100,11 +100,6 @@ function App() {
 
   function twoObjectsAreEqual(obj1, obj2) {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
-  }
-
-  function newOrdersDetected(nOrders, old) {
-    console.log(nOrders, old);
-    return false;
   }
 
   useEffect(() => {
@@ -174,20 +169,22 @@ function App() {
   return (
     <div className="vz-ss__orders-app">
       <header className="vz-ss__header">
-       <h1> Órdenes </h1>
        <div className="actions">
-        <a href={`${blogUrl}/service-space/`} rel="noopener noreferrer">
+        <a href={`${blogUrl}/service-space/`} 
+           rel="noopener noreferrer"
+           className="vz-ss__button-lite">
           Ver Mesas
         </a>
-        <button className="vz-ss__save-filters" onClick={() => saveFilters()}>
-            Guardar
-        </button>
-        <button onClick={() => toggleUpdate()} className={keepUpdating ? '--active' : ''}>
-          {keepUpdating ? 'Detener' : 'Actualizar'}
-        </button>
        </div>
+       <h1> Órdenes </h1>
       </header>
       <section className="vz-ss__order-filters">
+        <div className="vz-ss__filter">
+          <button onClick={() => toggleUpdate()} 
+                  className={`vz-ss__button ${keepUpdating ? '--active' : ''}`}>
+            {keepUpdating ? 'Detener' : 'Actualizar'}
+          </button>
+        </div>
         <div className="vz-ss__filter">
           <label> Estado de la Orden </label>
           <Select
@@ -230,6 +227,11 @@ function App() {
                   onChange={() => toggleHideEmpty()} />
             Esconder Ordenes sin Productos
           </label>
+        </div>
+        <div className="vz-ss__filter">
+          <button className="vz-ss__button-lite vz-ss__save-filters" onClick={() => saveFilters()}>
+              Guardar
+          </button>
         </div>
       </section>
       <main className="vz-service-spaces__orders">

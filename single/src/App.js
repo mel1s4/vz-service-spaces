@@ -3,7 +3,7 @@ import './App.scss';
 import axios from 'axios';
 
 function App() {
-  const [userIsAdmin, setUserIsAdmin] = useState(true);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
   const [spaceUid, setSpaceUid] = useState('initial');
   const [spaceTitle, setSpaceTitle] = useState('initial');
   const [nonce, setNonce] = useState('initial');
